@@ -1,0 +1,24 @@
+{
+  "ranges": [
+    {"country": "Poland", "start": "48D800", "end": "48D8FF", "note": "Polish Air Force"},
+    {"country": "USA", "start": "ADF7C8", "end": "AE1487", "note": "US Air Force"},
+    {"country": "USA", "start": "AE1488", "end": "AE6E45", "note": "US Army Aviation"},
+    {"country": "Germany", "start": "3F4000", "end": "3F7FFF", "note": "German Air Force"},
+    {"country": "United Kingdom", "start": "43C000", "end": "43CFFF", "note": "Royal Air Force"},
+    {"country": "France", "start": "3B0000", "end": "3BFFFF", "note": "French Air Force"},
+    {"country": "NATO", "start": "478000", "end": "4781FF", "note": "NATO common"},
+    {"country": "Czech Republic", "start": "498000", "end": "4983FF", "note": "Czech Air Force"},
+    {"country": "Slovakia", "start": "506000", "end": "5063FF", "note": "Slovak Air Force"},
+    {"country": "Lithuania", "start": "4F0000", "end": "4F03FF", "note": "Lithuanian Air Force"},
+    {"country": "Sweden", "start": "4A8000", "end": "4A9FFF", "note": "Swedish Air Force"},
+    {"country": "Italy", "start": "33E000", "end": "33EFFF", "note": "Italian Air Force"},
+    {"country": "Spain", "start": "340000", "end": "343FFF", "note": "Spanish Air Force"},
+    {"country": "Turkey", "start": "4B8000", "end": "4B8FFF", "note": "Turkish Air Force"},
+    {"country": "Norway", "start": "478800", "end": "4789FF", "note": "Royal Norwegian Air Force"},
+    {"country": "Denmark", "start": "458000", "end": "4581FF", "note": "Royal Danish Air Force"},
+    {"country": "Netherlands", "start": "480000", "end": "4803FF", "note": "Royal Netherlands Air Force"},
+    {"country": "Belgium", "start": "448000", "end": "4481FF", "note": "Belgian Air Force"},
+    {"country": "Canada", "start": "C0CDF9", "end": "C0CFF8", "note": "Royal Canadian Air Force"},
+    {"country": "Romania", "start": "4A0000", "end": "4A03FF", "note": "Romanian Air Force"}
+  ]
+}
