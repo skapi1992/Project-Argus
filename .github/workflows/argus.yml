@@ -1,0 +1,41 @@
+name: Argus Data Pipeline
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Run ingestion
+        run: python backend/ingest.py
+
+      - name: Run processing
+        run: python backend/process.py
+
+      - name: Export JSON
+        run: python backend/export.py
+
+      - name: Commit and push
+        run: |
+          git config user.name "Argus Bot"
+          git config user.email "argus-bot@users.noreply.github.com"
+          git add docs/data/ argus.db
+          git diff --cached --quiet || git commit -m "Update Argus data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push
