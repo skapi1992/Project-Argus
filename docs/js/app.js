@@ -6,8 +6,8 @@
 (function () {
     'use strict';
 
-    // Data paths (relative to docs/)
-    const DATA_BASE = '../data';
+    // Data paths (relative to docs/ root served by GitHub Pages)
+    const DATA_BASE = 'data';
     const LIVE_URL = `${DATA_BASE}/live.json`;
     const TREND_URL = `${DATA_BASE}/trend.json`;
     const STATS_URL = `${DATA_BASE}/stats.json`;

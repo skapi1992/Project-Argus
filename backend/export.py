@@ -18,7 +18,7 @@ logger = logging.getLogger("argus.export")
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "argus.db")
-DATA_DIR = os.path.join(BASE_DIR, "data")
+DATA_DIR = os.path.join(BASE_DIR, "docs", "data")
 
 TREND_DAYS = 7
 TREND_INTERVAL_SECONDS = 3600  # hourly granularity
