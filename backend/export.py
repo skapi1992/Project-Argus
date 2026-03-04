@@ -70,11 +70,33 @@ def export_live(conn):
     logger.info("Exported live.json: %d aircraft", len(aircraft))
 
 
+def load_existing_trend():
+    """Load previously committed trend.json to preserve historical data."""
+    path = os.path.join(DATA_DIR, "trend.json")
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path, "r") as f:
+            data = json.load(f)
+        # Return as dict keyed by timestamp for easy merging
+        return {p["timestamp"]: p["count"] for p in data.get("points", [])}
+    except (json.JSONDecodeError, KeyError):
+        return {}
+
+
 def export_trend(conn):
-    """Export hourly aircraft counts for the last 7 days to trend.json."""
+    """Export hourly aircraft counts for the last 7 days to trend.json.
+
+    Merges new data from SQLite with previously committed trend.json so that
+    historical data survives across fresh GitHub Actions runs.
+    """
     now = int(time.time())
     cutoff = now - (TREND_DAYS * 86400)
 
+    # Start with previously committed data points
+    merged = load_existing_trend()
+
+    # Layer in fresh data from this run's SQLite
     rows = conn.execute(
         """SELECT timestamp, total_count, country_breakdown
            FROM military_counts
@@ -83,20 +105,15 @@ def export_trend(conn):
         (cutoff,),
     ).fetchall()
 
-    # Bucket into hourly intervals
-    hourly = {}
     for ts, count, breakdown in rows:
         bucket = (ts // TREND_INTERVAL_SECONDS) * TREND_INTERVAL_SECONDS
-        if bucket not in hourly or ts > hourly[bucket]["ts"]:
-            hourly[bucket] = {"ts": ts, "count": count, "breakdown": breakdown}
+        # New data wins over old for the same bucket
+        merged[bucket] = count
 
-    points = []
-    for bucket in sorted(hourly.keys()):
-        entry = hourly[bucket]
-        points.append({
-            "timestamp": bucket,
-            "count": entry["count"],
-        })
+    # Prune anything older than 7 days
+    merged = {ts: count for ts, count in merged.items() if ts >= cutoff}
+
+    points = [{"timestamp": ts, "count": merged[ts]} for ts in sorted(merged)]
 
     trend_data = {
         "period_days": TREND_DAYS,
@@ -110,9 +127,26 @@ def export_trend(conn):
     logger.info("Exported trend.json: %d data points", len(points))
 
 
+def load_existing_stats():
+    """Load previously committed stats.json to preserve historical peak/low."""
+    path = os.path.join(DATA_DIR, "stats.json")
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, "r") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, KeyError):
+        return None
+
+
 def export_stats(conn):
-    """Export summary statistics to stats.json."""
+    """Export summary statistics to stats.json.
+
+    Merges with previously committed stats to preserve all-time peak/low
+    and rolling averages across fresh GitHub Actions runs.
+    """
     now = int(time.time())
+    prev = load_existing_stats()
 
     # Current count (latest snapshot)
     row = conn.execute(
@@ -120,36 +154,66 @@ def export_stats(conn):
     ).fetchone()
     current_count = row[0] if row else 0
 
-    # 24-hour average
+    # 24-hour average — use trend data for better coverage
+    avg_24h = current_count
+    avg_7d = current_count
+    avg_30d = current_count
+
     cutoff_24h = now - 86400
     row = conn.execute(
         "SELECT AVG(total_count) FROM military_counts WHERE timestamp >= ?",
         (cutoff_24h,),
     ).fetchone()
-    avg_24h = round(row[0], 1) if row and row[0] is not None else 0
+    if row and row[0] is not None:
+        avg_24h = round(row[0], 1)
 
-    # 7-day average
     cutoff_7d = now - (7 * 86400)
     row = conn.execute(
         "SELECT AVG(total_count) FROM military_counts WHERE timestamp >= ?",
         (cutoff_7d,),
     ).fetchone()
-    avg_7d = round(row[0], 1) if row and row[0] is not None else 0
+    if row and row[0] is not None:
+        avg_7d = round(row[0], 1)
 
-    # 30-day average
     cutoff_30d = now - (30 * 86400)
     row = conn.execute(
         "SELECT AVG(total_count) FROM military_counts WHERE timestamp >= ?",
         (cutoff_30d,),
     ).fetchone()
-    avg_30d = round(row[0], 1) if row and row[0] is not None else 0
+    if row and row[0] is not None:
+        avg_30d = round(row[0], 1)
 
-    # All-time peak and low
+    # Compute averages from trend.json for better long-term accuracy
+    existing_trend = load_existing_trend()
+    if existing_trend:
+        points_24h = [c for ts, c in existing_trend.items() if ts >= cutoff_24h]
+        points_7d = [c for ts, c in existing_trend.items() if ts >= cutoff_7d]
+        if points_24h:
+            avg_24h = round(sum(points_24h) / len(points_24h), 1)
+        if points_7d:
+            avg_7d = round(sum(points_7d) / len(points_7d), 1)
+
+    # Peak and low — merge with previously committed values
     row = conn.execute(
         "SELECT MAX(total_count), MIN(total_count) FROM military_counts"
     ).fetchone()
-    peak = row[0] if row and row[0] is not None else 0
-    low = row[1] if row and row[1] is not None else 0
+    run_peak = row[0] if row and row[0] is not None else 0
+    run_low = row[1] if row and row[1] is not None else 0
+
+    if prev:
+        peak = max(run_peak, prev.get("peak", 0))
+        low = min(run_low, prev.get("low", run_low)) if prev.get("low", 0) > 0 else run_low
+    else:
+        peak = run_peak
+        low = run_low
+
+    # Also consider trend history for peak/low
+    if existing_trend:
+        trend_peak = max(existing_trend.values())
+        trend_low = min(existing_trend.values())
+        peak = max(peak, trend_peak)
+        if trend_low > 0:
+            low = min(low, trend_low) if low > 0 else trend_low
 
     # Latest timestamp
     row = conn.execute(
