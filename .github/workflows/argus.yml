@@ -1,9 +1,23 @@
 name: Argus Data Pipeline
 
+# External cron trigger setup (for reliable refreshes):
+#   GitHub Actions cron can be delayed or skipped. For reliable 5-min intervals,
+#   use an external service (cron-job.org, UptimeRobot, Easycron) to POST:
+#
+#   URL:  https://api.github.com/repos/OWNER/REPO/dispatches
+#   Headers:
+#     Authorization: Bearer <PAT with repo or actions:write scope>
+#     Accept: application/vnd.github+json
+#   Body: {"event_type": "refresh"}
+#
+#   Set the external cron to run every 5 minutes for consistent data freshness.
+
 on:
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
+  repository_dispatch:
+    types: [refresh]
 
 permissions:
   contents: write

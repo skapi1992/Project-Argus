@@ -13,6 +13,8 @@
     const STATS_URL = `${DATA_BASE}/stats.json`;
 
     const REFRESH_INTERVAL = 60000; // 60 seconds
+    const STALE_WARNING_SECS = 600;   // 10 minutes — amber warning
+    const STALE_CRITICAL_SECS = 1800; // 30 minutes — red critical
     const MAP_CENTER = [52.0, 19.5];
     const MAP_ZOOM = 6;
 
@@ -414,8 +416,12 @@
     }
 
     function updateLastUpdated(timestamp) {
+        var banner = document.getElementById('stale-banner');
+        var headerStatus = document.getElementById('header-status');
+
         if (!timestamp) {
             setText('last-updated', 'Updated: —');
+            if (banner) banner.classList.remove('visible', 'stale-warning', 'stale-critical');
             return;
         }
 
@@ -437,6 +443,22 @@
         }
 
         setText('last-updated', 'Updated: ' + text);
+
+        // Staleness indicator (only in live mode)
+        if (timelineMode !== 'live' || !banner) return;
+
+        if (diff >= STALE_CRITICAL_SECS) {
+            banner.className = 'stale-banner stale-critical visible';
+            banner.textContent = 'Data is stale — last update ' + text;
+            if (headerStatus) headerStatus.className = 'header-live stale-critical-dot';
+        } else if (diff >= STALE_WARNING_SECS) {
+            banner.className = 'stale-banner stale-warning visible';
+            banner.textContent = 'Data may be delayed — last update ' + text;
+            if (headerStatus) headerStatus.className = 'header-live stale-warning-dot';
+        } else {
+            banner.classList.remove('visible', 'stale-warning', 'stale-critical');
+            if (headerStatus) headerStatus.className = 'header-live';
+        }
     }
 
     // --- Timeline ---

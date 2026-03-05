@@ -101,6 +101,47 @@ a:hover {
     50% { opacity: 0.3; }
 }
 
+/* Staleness banner */
+.stale-banner {
+    display: none;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    padding: 6px 16px;
+}
+
+.stale-banner.visible {
+    display: block;
+}
+
+.stale-banner.stale-warning {
+    background: rgba(212, 168, 83, 0.15);
+    color: #d4a853;
+    border-bottom: 1px solid rgba(212, 168, 83, 0.25);
+}
+
+.stale-banner.stale-critical {
+    background: rgba(220, 60, 60, 0.15);
+    color: #dc3c3c;
+    border-bottom: 1px solid rgba(220, 60, 60, 0.25);
+}
+
+/* Header status dot overrides for staleness */
+.header-live.stale-warning-dot::before {
+    background: #d4a853;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.header-live.stale-critical-dot {
+    color: #dc3c3c;
+}
+
+.header-live.stale-critical-dot::before {
+    background: #dc3c3c;
+    animation: pulse 0.8s ease-in-out infinite;
+}
+
 /* Main layout */
 .main {
     flex: 1;
