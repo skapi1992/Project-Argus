@@ -1,13 +1,11 @@
 """
-Argus Data Ingestion — Fetches aircraft state vectors from OpenSky Network API
+Argus Data Ingestion — Fetches aircraft state vectors from ADSB.lol API
 and stores them in the local SQLite database.
 """
 
-import json
 import logging
 import os
 import sqlite3
-import sys
 import time
 
 import requests
@@ -22,44 +20,14 @@ logger = logging.getLogger("argus.ingest")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "argus.db")
 
-OPENSKY_API_URL = "https://opensky-network.org/api/states/all"
-OPENSKY_TOKEN_URL = "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token"
+# ADSB.lol bounding box endpoint: Poland + direct neighbours
+# latn=north, lats=south, lonw=west, lone=east
+ADSB_LOL_URL = "https://api.adsb.lol/v2/latn/56.0/lats/48.0/lonw/12.0/lone/26.0"
 
-# Bounding box: Poland + direct neighbours
-BBOX = {
-    "lamin": 48.0,
-    "lamax": 56.0,
-    "lomin": 12.0,
-    "lomax": 26.0,
-}
-
-
-def get_opensky_token():
-    """Fetch an OAuth2 access token using client credentials flow."""
-    client_id = os.environ.get("OPENSKY_CLIENT_ID")
-    client_secret = os.environ.get("OPENSKY_CLIENT_SECRET")
-    if not client_id or not client_secret:
-        logger.warning("OpenSky credentials not set — trying anonymous access")
-        return None
-
-    try:
-        resp = requests.post(
-            OPENSKY_TOKEN_URL,
-            data={
-                "grant_type": "client_credentials",
-                "client_id": client_id,
-                "client_secret": client_secret,
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            timeout=15,
-        )
-        resp.raise_for_status()
-        token = resp.json().get("access_token")
-        logger.info("Successfully obtained OpenSky OAuth2 token")
-        return token
-    except requests.RequestException as e:
-        logger.warning("Failed to obtain OAuth2 token: %s", e)
-        return None
+# Unit conversion constants
+FEET_TO_METERS = 0.3048
+KNOTS_TO_MS = 0.514444
+FPM_TO_MS = 0.00508  # feet per minute to meters per second
 
 
 def init_db(conn):
@@ -107,25 +75,11 @@ def init_db(conn):
     """)
 
 
-def fetch_opensky_data():
-    """Fetch aircraft states from OpenSky Network API with retry."""
-    params = {
-        "lamin": BBOX["lamin"],
-        "lamax": BBOX["lamax"],
-        "lomin": BBOX["lomin"],
-        "lomax": BBOX["lomax"],
-    }
-
-    token = get_opensky_token()
-    headers = {}
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-
+def fetch_adsb_data():
+    """Fetch aircraft states from ADSB.lol API with retry."""
     for attempt in range(2):
         try:
-            resp = requests.get(
-                OPENSKY_API_URL, params=params, headers=headers, timeout=30
-            )
+            resp = requests.get(ADSB_LOL_URL, timeout=30)
             resp.raise_for_status()
             return resp.json()
         except requests.RequestException as e:
@@ -133,34 +87,51 @@ def fetch_opensky_data():
             if attempt == 0:
                 time.sleep(5)
 
-    logger.error("Failed to fetch data from OpenSky after 2 attempts")
+    logger.error("Failed to fetch data from ADSB.lol after 2 attempts")
     return None
 
 
 def insert_raw_states(conn, data):
-    """Parse and insert raw aircraft states into the database."""
-    api_timestamp = data.get("time", int(time.time()))
-    states = data.get("states", [])
+    """Parse ADSB.lol response and insert aircraft states into the database."""
+    api_timestamp = int(data.get("now", time.time() * 1000) / 1000)
+    aircraft = data.get("ac", [])
 
-    if not states:
+    if not aircraft:
         logger.info("No aircraft states returned by the API")
         return 0
 
     rows = []
-    for s in states:
+    for ac in aircraft:
+        icao24 = ac.get("hex", "")
+        if icao24.startswith("~"):
+            icao24 = icao24[1:]
+
+        alt_baro = ac.get("alt_baro")
+        on_ground = 1 if alt_baro == "ground" else 0
+        if isinstance(alt_baro, (int, float)):
+            alt_meters = alt_baro * FEET_TO_METERS
+        else:
+            alt_meters = None
+
+        gs = ac.get("gs")
+        velocity_ms = gs * KNOTS_TO_MS if isinstance(gs, (int, float)) else None
+
+        baro_rate = ac.get("baro_rate")
+        vrate_ms = baro_rate * FPM_TO_MS if isinstance(baro_rate, (int, float)) else None
+
         rows.append((
             api_timestamp,
-            s[0],             # icao24
-            s[1].strip() if s[1] else None,  # callsign
-            s[2],             # origin_country
-            s[6],             # latitude
-            s[5],             # longitude
-            s[7],             # baro_altitude
-            s[9],             # velocity
-            s[10],            # true_track
-            s[11],            # vertical_rate
-            1 if s[8] else 0, # on_ground
-            s[17] if len(s) > 17 else None,  # category
+            icao24,
+            ac.get("flight", "").strip() or None,
+            None,              # origin_country (not available in ADSB.lol)
+            ac.get("lat"),
+            ac.get("lon"),
+            alt_meters,
+            velocity_ms,
+            ac.get("track"),
+            vrate_ms,
+            on_ground,
+            ac.get("category"),
         ))
 
     conn.executemany(
@@ -180,7 +151,7 @@ def main():
     try:
         init_db(conn)
 
-        data = fetch_opensky_data()
+        data = fetch_adsb_data()
         if data is None:
             logger.warning("No data retrieved — skipping ingestion")
             return
