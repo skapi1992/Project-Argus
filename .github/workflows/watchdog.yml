@@ -2,7 +2,7 @@ name: Argus Watchdog
 
 on:
   schedule:
-    - cron: '3/10 * * * *'
+    - cron: '1/5 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -36,11 +36,11 @@ jobs:
 
           echo "Last update: ${AGE_MINUTES} minutes ago (${AGE_SECONDS}s)"
 
-          if [ "$AGE_SECONDS" -gt 900 ]; then
-            echo "Data is STALE (${AGE_MINUTES}m > 15m threshold)"
+          if [ "$AGE_SECONDS" -gt 360 ]; then
+            echo "Data is STALE (${AGE_MINUTES}m > 6m threshold)"
             echo "stale=true" >> "$GITHUB_OUTPUT"
           else
-            echo "Data is FRESH (${AGE_MINUTES}m <= 15m threshold)"
+            echo "Data is FRESH (${AGE_MINUTES}m <= 6m threshold)"
             echo "stale=false" >> "$GITHUB_OUTPUT"
           fi
 

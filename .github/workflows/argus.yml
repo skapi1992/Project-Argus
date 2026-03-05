@@ -10,11 +10,11 @@ name: Argus Data Pipeline
 #     Accept: application/vnd.github+json
 #   Body: {"event_type": "refresh"}
 #
-#   Set the external cron to run every 5 minutes for consistent data freshness.
+#   Set the external cron to run every 2 minutes for consistent data freshness.
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/2 * * * *'
   workflow_dispatch:
   repository_dispatch:
     types: [refresh]

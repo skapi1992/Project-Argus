@@ -13,8 +13,8 @@
     const STATS_URL = `${DATA_BASE}/stats.json`;
 
     const REFRESH_INTERVAL = 60000; // 60 seconds
-    const STALE_WARNING_SECS = 600;   // 10 minutes — amber warning
-    const STALE_CRITICAL_SECS = 1800; // 30 minutes — red critical
+    const STALE_WARNING_SECS = 300;   // 5 minutes — amber warning
+    const STALE_CRITICAL_SECS = 600;  // 10 minutes — red critical
     const MAP_CENTER = [52.0, 19.5];
     const MAP_ZOOM = 6;
 
