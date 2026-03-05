@@ -19,13 +19,16 @@ logger = logging.getLogger("argus.export")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "argus.db")
 DATA_DIR = os.path.join(BASE_DIR, "docs", "data")
+HISTORY_DIR = os.path.join(DATA_DIR, "history")
 
 TREND_DAYS = 7
 TREND_INTERVAL_SECONDS = 3600  # hourly granularity
+HISTORY_DAYS = 7
 
 
 def ensure_data_dir():
     os.makedirs(DATA_DIR, exist_ok=True)
+    os.makedirs(HISTORY_DIR, exist_ok=True)
 
 
 def export_live(conn):
@@ -254,6 +257,111 @@ def export_stats(conn):
     logger.info("Exported stats.json: current=%d, peak=%d", current_count, peak)
 
 
+def load_existing_history(date_str):
+    """Load previously committed daily history file to preserve data across CI runs."""
+    path = os.path.join(HISTORY_DIR, f"{date_str}.json")
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path, "r") as f:
+            data = json.load(f)
+        # Return as dict keyed by timestamp for easy merging
+        return {s["timestamp"]: s["aircraft"] for s in data.get("snapshots", [])}
+    except (json.JSONDecodeError, KeyError):
+        return {}
+
+
+def export_history(conn):
+    """Export per-aircraft position snapshots grouped by day for timeline replay.
+
+    Generates one JSON file per day in docs/data/history/YYYY-MM-DD.json,
+    plus an index.json listing available dates.
+    """
+    now = int(time.time())
+    cutoff = now - (HISTORY_DAYS * 86400)
+
+    # Query all military positions within the history window
+    rows = conn.execute(
+        """SELECT timestamp, icao24, callsign, origin_country, latitude, longitude,
+                  baro_altitude, velocity, true_track, on_ground
+           FROM military_positions
+           WHERE timestamp >= ?
+           ORDER BY timestamp ASC""",
+        (cutoff,),
+    ).fetchall()
+
+    # Group rows by day, then by timestamp within each day
+    from datetime import datetime, timezone
+
+    days = {}  # date_str -> {timestamp -> [aircraft]}
+    for r in rows:
+        ts = r[0]
+        dt = datetime.fromtimestamp(ts, tz=timezone.utc)
+        date_str = dt.strftime("%Y-%m-%d")
+
+        if date_str not in days:
+            days[date_str] = {}
+
+        if ts not in days[date_str]:
+            days[date_str][ts] = []
+
+        days[date_str][ts].append({
+            "icao24": r[1],
+            "callsign": r[2].strip() if r[2] else None,
+            "country": r[3],
+            "lat": r[4],
+            "lon": r[5],
+            "altitude": r[6],
+            "velocity": r[7],
+            "heading": r[8],
+            "on_ground": bool(r[9]),
+        })
+
+    # Merge with previously committed data and write daily files
+    all_dates = set()
+    for date_str, snapshots in days.items():
+        # Merge with existing
+        existing = load_existing_history(date_str)
+        existing.update(snapshots)  # new data wins
+
+        sorted_ts = sorted(existing.keys())
+        day_data = {
+            "date": date_str,
+            "snapshots": [
+                {"timestamp": ts, "aircraft": existing[ts]}
+                for ts in sorted_ts
+            ],
+        }
+
+        path = os.path.join(HISTORY_DIR, f"{date_str}.json")
+        with open(path, "w") as f:
+            json.dump(day_data, f, separators=(",", ":"))
+        all_dates.add(date_str)
+        logger.info("Exported history/%s.json: %d snapshots", date_str, len(sorted_ts))
+
+    # Also include dates from existing files that we didn't touch
+    for fname in os.listdir(HISTORY_DIR):
+        if fname.endswith(".json") and fname != "index.json":
+            d = fname[:-5]
+            # Prune old files beyond the history window
+            try:
+                file_date = datetime.strptime(d, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                if file_date.timestamp() < cutoff - 86400:
+                    os.remove(os.path.join(HISTORY_DIR, fname))
+                    logger.info("Pruned old history file: %s", fname)
+                else:
+                    all_dates.add(d)
+            except ValueError:
+                pass
+
+    # Write index.json
+    index_data = {"dates": sorted(all_dates)}
+    path = os.path.join(HISTORY_DIR, "index.json")
+    with open(path, "w") as f:
+        json.dump(index_data, f, separators=(",", ":"))
+    logger.info("Exported history/index.json: %d dates", len(all_dates))
+
+
 def main():
     ensure_data_dir()
 
@@ -262,6 +370,7 @@ def main():
         export_live(conn)
         export_trend(conn)
         export_stats(conn)
+        export_history(conn)
         logger.info("All exports complete")
     finally:
         conn.close()

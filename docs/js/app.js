@@ -22,6 +22,14 @@
     let activeDetailIcao = null;
     const aircraftCache = {}; // cache for model + photo lookups
 
+    // Timeline state
+    let timelineMode = 'live'; // 'live' or 'history'
+    const historyCache = {};   // date string -> { snapshots: [...] }
+    let historyDates = [];     // sorted available dates
+    let flatSnapshots = [];    // flattened list of {timestamp, date, idx} for slider
+    let playInterval = null;
+    let refreshTimer = null;
+
     // --- Map ---
 
     function initMap() {
@@ -219,6 +227,58 @@
 
     // --- Chart ---
 
+    // Chart.js plugin: vertical cursor line for timeline position
+    const timelineCursorPlugin = {
+        id: 'timelineCursor',
+        afterDraw: function (chart) {
+            if (timelineMode !== 'history') return;
+            var cursorTs = chart.options.plugins.timelineCursor &&
+                           chart.options.plugins.timelineCursor.timestamp;
+            if (!cursorTs) return;
+
+            // Find the closest trend point index by timestamp
+            var timestamps = chart._trendTimestamps || [];
+            if (!timestamps.length) return;
+
+            var closestIdx = 0;
+            var closestDiff = Math.abs(timestamps[0] - cursorTs);
+            for (var i = 1; i < timestamps.length; i++) {
+                var diff = Math.abs(timestamps[i] - cursorTs);
+                if (diff < closestDiff) {
+                    closestDiff = diff;
+                    closestIdx = i;
+                }
+            }
+
+            var meta = chart.getDatasetMeta(0);
+            if (!meta.data[closestIdx]) return;
+
+            var x = meta.data[closestIdx].x;
+            var ctx = chart.ctx;
+            var yAxis = chart.scales.y;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x, yAxis.top);
+            ctx.lineTo(x, yAxis.bottom);
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = 'rgba(212, 168, 83, 0.7)';
+            ctx.stroke();
+
+            // Small diamond at the data point
+            var y = meta.data[closestIdx].y;
+            ctx.beginPath();
+            ctx.moveTo(x, y - 4);
+            ctx.lineTo(x + 4, y);
+            ctx.lineTo(x, y + 4);
+            ctx.lineTo(x - 4, y);
+            ctx.closePath();
+            ctx.fillStyle = '#d4a853';
+            ctx.fill();
+            ctx.restore();
+        },
+    };
+
     function initTrendChart() {
         const ctx = document.getElementById('trend-chart').getContext('2d');
 
@@ -237,11 +297,13 @@
                     pointHitRadius: 8,
                 }],
             },
+            plugins: [timelineCursorPlugin],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
+                    timelineCursor: { timestamp: null },
                     tooltip: {
                         backgroundColor: '#181824',
                         borderColor: 'rgba(255,255,255,0.06)',
@@ -314,6 +376,7 @@
             return p.count;
         });
 
+        trendChart._trendTimestamps = trendData.points.map(function (p) { return p.timestamp; });
         trendChart.data.labels = labels;
         trendChart.data.datasets[0].data = values;
         trendChart.update('none');
@@ -376,6 +439,187 @@
         setText('last-updated', 'Updated: ' + text);
     }
 
+    // --- Timeline ---
+
+    const HISTORY_INDEX_URL = DATA_BASE + '/history/index.json';
+
+    function loadHistoryIndex() {
+        return fetchJSON(HISTORY_INDEX_URL)
+            .then(function (data) {
+                historyDates = (data.dates || []).sort();
+            })
+            .catch(function () {
+                historyDates = [];
+            });
+    }
+
+    function loadHistoryDay(dateStr) {
+        if (historyCache[dateStr]) return Promise.resolve(historyCache[dateStr]);
+        var url = DATA_BASE + '/history/' + dateStr + '.json';
+        return fetchJSON(url).then(function (data) {
+            historyCache[dateStr] = data;
+            return data;
+        });
+    }
+
+    function buildFlatSnapshots() {
+        // Build a flat list from all cached days for slider indexing
+        flatSnapshots = [];
+        historyDates.forEach(function (dateStr) {
+            var dayData = historyCache[dateStr];
+            if (!dayData || !dayData.snapshots) return;
+            dayData.snapshots.forEach(function (snap, idx) {
+                flatSnapshots.push({
+                    timestamp: snap.timestamp,
+                    date: dateStr,
+                    idx: idx,
+                });
+            });
+        });
+        // Sort by timestamp
+        flatSnapshots.sort(function (a, b) { return a.timestamp - b.timestamp; });
+    }
+
+    function initTimeline() {
+        var slider = document.getElementById('tl-slider');
+        var playBtn = document.getElementById('tl-play');
+        var liveBtn = document.getElementById('tl-live');
+
+        slider.addEventListener('input', function () {
+            if (timelineMode === 'live') {
+                enterHistoryMode();
+            }
+            showSnapshotAt(parseInt(slider.value, 10));
+        });
+
+        playBtn.addEventListener('click', function () {
+            togglePlay();
+        });
+
+        liveBtn.addEventListener('click', function () {
+            enterLiveMode();
+        });
+
+        // Load history index, then preload all days for the slider
+        loadHistoryIndex().then(function () {
+            if (!historyDates.length) return;
+            var promises = historyDates.map(function (d) { return loadHistoryDay(d); });
+            return Promise.all(promises);
+        }).then(function () {
+            buildFlatSnapshots();
+            if (flatSnapshots.length) {
+                slider.max = flatSnapshots.length - 1;
+                slider.value = slider.max;
+            }
+        });
+    }
+
+    function showSnapshotAt(sliderValue) {
+        if (sliderValue < 0 || sliderValue >= flatSnapshots.length) return;
+
+        var entry = flatSnapshots[sliderValue];
+        var dayData = historyCache[entry.date];
+        if (!dayData || !dayData.snapshots[entry.idx]) return;
+
+        var snap = dayData.snapshots[entry.idx];
+        updateMapMarkers(snap.aircraft || []);
+
+        // Update timestamp label
+        var d = new Date(snap.timestamp * 1000);
+        var label = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) +
+                    ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) +
+                    ' UTC';
+        setText('tl-timestamp', label);
+
+        // Update chart cursor
+        if (trendChart && trendChart.options.plugins.timelineCursor) {
+            trendChart.options.plugins.timelineCursor.timestamp = snap.timestamp;
+            trendChart.update('none');
+        }
+    }
+
+    function enterHistoryMode() {
+        if (timelineMode === 'history') return;
+        timelineMode = 'history';
+
+        // Pause auto-refresh
+        if (refreshTimer) {
+            clearInterval(refreshTimer);
+            refreshTimer = null;
+        }
+
+        // Update UI
+        document.getElementById('tl-live').classList.remove('active');
+        document.getElementById('header-status').textContent = 'History';
+    }
+
+    function enterLiveMode() {
+        timelineMode = 'live';
+        stopPlay();
+
+        // Reset UI
+        document.getElementById('tl-live').classList.add('active');
+        document.getElementById('header-status').textContent = 'Live';
+        setText('tl-timestamp', '');
+
+        // Reset slider to end
+        var slider = document.getElementById('tl-slider');
+        if (flatSnapshots.length) {
+            slider.value = slider.max;
+        }
+
+        // Clear chart cursor
+        if (trendChart && trendChart.options.plugins.timelineCursor) {
+            trendChart.options.plugins.timelineCursor.timestamp = null;
+            trendChart.update('none');
+        }
+
+        // Resume auto-refresh and fetch fresh data
+        refreshData();
+        refreshTimer = setInterval(refreshData, REFRESH_INTERVAL);
+    }
+
+    function togglePlay() {
+        if (playInterval) {
+            stopPlay();
+        } else {
+            startPlay();
+        }
+    }
+
+    function startPlay() {
+        var slider = document.getElementById('tl-slider');
+        var playBtn = document.getElementById('tl-play');
+
+        if (timelineMode === 'live') {
+            enterHistoryMode();
+            slider.value = 0;
+        }
+
+        playBtn.innerHTML = '&#10074;&#10074;';
+        playBtn.classList.add('playing');
+
+        playInterval = setInterval(function () {
+            var val = parseInt(slider.value, 10) + 1;
+            if (val >= flatSnapshots.length) {
+                stopPlay();
+                return;
+            }
+            slider.value = val;
+            showSnapshotAt(val);
+        }, 500);
+    }
+
+    function stopPlay() {
+        if (playInterval) {
+            clearInterval(playInterval);
+            playInterval = null;
+        }
+        var playBtn = document.getElementById('tl-play');
+        playBtn.innerHTML = '&#9654;';
+        playBtn.classList.remove('playing');
+    }
+
     // --- Data fetching ---
 
     function fetchJSON(url) {
@@ -387,13 +631,16 @@
     }
 
     function refreshData() {
-        fetchJSON(LIVE_URL)
-            .then(function (data) {
-                updateMapMarkers(data.aircraft || []);
-            })
-            .catch(function (err) {
-                console.warn('Failed to fetch live data:', err);
-            });
+        // Only update map markers if in live mode
+        if (timelineMode === 'live') {
+            fetchJSON(LIVE_URL)
+                .then(function (data) {
+                    updateMapMarkers(data.aircraft || []);
+                })
+                .catch(function (err) {
+                    console.warn('Failed to fetch live data:', err);
+                });
+        }
 
         fetchJSON(STATS_URL)
             .then(function (data) {
@@ -431,8 +678,9 @@
         initMap();
         initTrendChart();
         initDetailPanel();
+        initTimeline();
         refreshData();
-        setInterval(refreshData, REFRESH_INTERVAL);
+        refreshTimer = setInterval(refreshData, REFRESH_INTERVAL);
     }
 
     if (document.readyState === 'loading') {

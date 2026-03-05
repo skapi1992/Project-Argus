@@ -96,6 +96,12 @@
                 <div class="chart-container">
                     <canvas id="trend-chart"></canvas>
                 </div>
+                <div class="timeline-controls" id="timeline-controls">
+                    <button class="tl-btn" id="tl-play" aria-label="Play" title="Play timeline">&#9654;</button>
+                    <input type="range" class="tl-slider" id="tl-slider" min="0" max="0" value="0">
+                    <button class="tl-btn tl-live-btn active" id="tl-live" title="Return to live">LIVE</button>
+                </div>
+                <div class="tl-timestamp" id="tl-timestamp"></div>
             </section>
 
             <section class="stat-section">

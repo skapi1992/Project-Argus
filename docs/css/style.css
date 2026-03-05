@@ -186,6 +186,117 @@ a:hover {
     position: relative;
 }
 
+/* Timeline controls */
+.timeline-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.tl-btn {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-family: var(--font);
+    font-size: 11px;
+    width: 32px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+}
+
+.tl-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--accent-secondary);
+}
+
+.tl-btn.playing {
+    color: var(--accent-primary);
+}
+
+.tl-live-btn {
+    width: auto;
+    padding: 0 10px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    position: relative;
+    padding-left: 20px;
+}
+
+.tl-live-btn::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--text-secondary);
+    transition: background 0.15s;
+}
+
+.tl-live-btn.active {
+    color: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.tl-live-btn.active::before {
+    background: var(--accent-primary);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.tl-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--bg-secondary);
+    outline: none;
+    cursor: pointer;
+}
+
+.tl-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    border: 2px solid var(--bg-primary);
+    cursor: pointer;
+    transition: box-shadow 0.15s;
+}
+
+.tl-slider::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 0 4px rgba(212, 168, 83, 0.2);
+}
+
+.tl-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    border: 2px solid var(--bg-primary);
+    cursor: pointer;
+}
+
+.tl-timestamp {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 4px;
+    min-height: 16px;
+}
+
 /* Country list */
 .country-list {
     list-style: none;
