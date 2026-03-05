@@ -44,6 +44,7 @@ jobs:
           curl -s -o /dev/null -w "HTTP %{http_code} from api.adsb.lol" https://api.adsb.lol/v2/latn/56.0/lats/48.0/lonw/12.0/lone/26.0 || true
 
       - name: Run ingestion
+        continue-on-error: true
         run: python backend/ingest.py
 
       - name: Run processing

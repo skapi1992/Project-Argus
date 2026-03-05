@@ -77,17 +77,21 @@ def init_db(conn):
 
 def fetch_adsb_data():
     """Fetch aircraft states from ADSB.lol API with retry."""
-    for attempt in range(2):
+    for attempt in range(4):
         try:
             resp = requests.get(ADSB_LOL_URL, timeout=30)
+            logger.info("API response: HTTP %d, %d bytes", resp.status_code, len(resp.content))
             resp.raise_for_status()
-            return resp.json()
+            data = resp.json()
+            logger.info("API returned %d aircraft (msg: %s)", data.get("total", 0), data.get("msg", "N/A"))
+            return data
         except requests.RequestException as e:
-            logger.warning("API request failed (attempt %d): %s", attempt + 1, e)
-            if attempt == 0:
-                time.sleep(5)
+            logger.warning("API request failed (attempt %d/%d): %s", attempt + 1, 4, e)
+            if attempt < 3:
+                wait = 2 ** (attempt + 1)
+                time.sleep(wait)
 
-    logger.error("Failed to fetch data from ADSB.lol after 2 attempts")
+    logger.error("Failed to fetch data from ADSB.lol after 4 attempts")
     return None
 
 
@@ -153,8 +157,8 @@ def main():
 
         data = fetch_adsb_data()
         if data is None:
-            logger.warning("No data retrieved — skipping ingestion")
-            return
+            logger.error("No data retrieved — ingestion failed")
+            raise SystemExit(1)
 
         count = insert_raw_states(conn, data)
         logger.info("Ingestion complete: %d states stored", count)
