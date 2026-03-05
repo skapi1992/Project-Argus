@@ -148,8 +148,12 @@
                         ticks: {
                             color: '#8a8a9a',
                             font: { family: 'Inter', size: 10 },
-                            maxTicksLimit: 7,
                             maxRotation: 0,
+                            autoSkip: false,
+                            callback: function (value, index) {
+                                var label = this.getLabelForValue(index);
+                                return label || null;
+                            },
                         },
                         border: { display: false },
                     },
@@ -173,9 +177,15 @@
     function updateTrendChart(trendData) {
         if (!trendData || !trendData.points || !trendData.points.length) return;
 
+        var lastDateStr = '';
         const labels = trendData.points.map(function (p) {
             const d = new Date(p.timestamp * 1000);
-            return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+            const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+            if (dateStr === lastDateStr) {
+                return '';
+            }
+            lastDateStr = dateStr;
+            return dateStr;
         });
 
         const values = trendData.points.map(function (p) {

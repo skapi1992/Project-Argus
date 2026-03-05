@@ -1,0 +1,2 @@
+# Ephemeral SQLite database (rebuilt each pipeline run)
+argus.db
