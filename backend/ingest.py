@@ -23,6 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "argus.db")
 
 OPENSKY_API_URL = "https://opensky-network.org/api/states/all"
+OPENSKY_TOKEN_URL = "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token"
 
 # Bounding box: Poland + direct neighbours
 BBOX = {
@@ -31,6 +32,34 @@ BBOX = {
     "lomin": 12.0,
     "lomax": 26.0,
 }
+
+
+def get_opensky_token():
+    """Fetch an OAuth2 access token using client credentials flow."""
+    client_id = os.environ.get("OPENSKY_CLIENT_ID")
+    client_secret = os.environ.get("OPENSKY_CLIENT_SECRET")
+    if not client_id or not client_secret:
+        logger.warning("OpenSky credentials not set — trying anonymous access")
+        return None
+
+    try:
+        resp = requests.post(
+            OPENSKY_TOKEN_URL,
+            data={
+                "grant_type": "client_credentials",
+                "client_id": client_id,
+                "client_secret": client_secret,
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=15,
+        )
+        resp.raise_for_status()
+        token = resp.json().get("access_token")
+        logger.info("Successfully obtained OpenSky OAuth2 token")
+        return token
+    except requests.RequestException as e:
+        logger.warning("Failed to obtain OAuth2 token: %s", e)
+        return None
 
 
 def init_db(conn):
@@ -87,9 +116,16 @@ def fetch_opensky_data():
         "lomax": BBOX["lomax"],
     }
 
+    token = get_opensky_token()
+    headers = {}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
     for attempt in range(2):
         try:
-            resp = requests.get(OPENSKY_API_URL, params=params, timeout=30)
+            resp = requests.get(
+                OPENSKY_API_URL, params=params, headers=headers, timeout=30
+            )
             resp.raise_for_status()
             return resp.json()
         except requests.RequestException as e:
@@ -146,8 +182,8 @@ def main():
 
         data = fetch_opensky_data()
         if data is None:
-            logger.error("No data retrieved — exiting")
-            sys.exit(1)
+            logger.warning("No data retrieved — skipping ingestion")
+            return
 
         count = insert_raw_states(conn, data)
         logger.info("Ingestion complete: %d states stored", count)
