@@ -19,6 +19,8 @@
     let map;
     let markersLayer;
     let trendChart;
+    let activeDetailIcao = null;
+    const aircraftCache = {}; // cache for model + photo lookups
 
     // --- Map ---
 
@@ -75,6 +77,122 @@
         </div>`;
     }
 
+    // --- Aircraft detail panel ---
+
+    function showDetail(ac) {
+        var panel = document.getElementById('aircraft-detail');
+        var icao = (ac.icao24 || '').toLowerCase();
+
+        activeDetailIcao = icao;
+
+        // Populate known fields immediately
+        setText('detail-callsign', ac.callsign || 'Unknown');
+        setText('detail-country', ac.country || '—');
+        setText('detail-icao', (ac.icao24 || '—').toUpperCase());
+        setText('detail-alt', formatAltitude(ac.altitude));
+        setText('detail-spd', formatSpeed(ac.velocity));
+        setText('detail-hdg', formatHeading(ac.heading));
+        setText('detail-status', ac.on_ground ? 'On Ground' : 'Airborne');
+
+        // Reset photo + model while loading
+        var photoWrap = document.getElementById('detail-photo-wrap');
+        var placeholder = document.getElementById('detail-photo-placeholder');
+        photoWrap.querySelectorAll('img, .detail-photo-credit').forEach(function (el) { el.remove(); });
+        placeholder.style.display = 'flex';
+        placeholder.textContent = 'Loading…';
+
+        var modelEl = document.getElementById('detail-model');
+        modelEl.innerHTML = '<span class="loading-dots">Looking up aircraft</span>';
+
+        panel.classList.add('visible');
+
+        // Check cache first
+        if (aircraftCache[icao]) {
+            applyDetailData(aircraftCache[icao]);
+            return;
+        }
+
+        // Fetch aircraft type + photo in parallel
+        var result = { model: null, photo: null, photographer: null };
+
+        var typePromise = fetch('https://hexdb.io/api/v1/aircraft/' + icao)
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (data) {
+                if (data) {
+                    var parts = [];
+                    if (data.Manufacturer) parts.push(data.Manufacturer);
+                    if (data.Type) parts.push(data.Type);
+                    if (data.RegisteredOwners) parts.push('(' + data.RegisteredOwners + ')');
+                    result.model = parts.join(' ') || null;
+                }
+            })
+            .catch(function () { /* ignore */ });
+
+        var photoPromise = fetch('https://api.planespotters.net/pub/photos/hex/' + icao)
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (data) {
+                if (data && data.photos && data.photos.length) {
+                    var photo = data.photos[0];
+                    result.photo = photo.thumbnail_large ? photo.thumbnail_large.src : (photo.thumbnail ? photo.thumbnail.src : null);
+                    result.photographer = photo.photographer || null;
+                }
+            })
+            .catch(function () { /* ignore */ });
+
+        Promise.all([typePromise, photoPromise]).then(function () {
+            aircraftCache[icao] = result;
+            // Only apply if this aircraft is still selected
+            if (activeDetailIcao === icao) {
+                applyDetailData(result);
+            }
+        });
+    }
+
+    function applyDetailData(data) {
+        var modelEl = document.getElementById('detail-model');
+        modelEl.textContent = data.model || 'Unknown aircraft type';
+
+        var photoWrap = document.getElementById('detail-photo-wrap');
+        var placeholder = document.getElementById('detail-photo-placeholder');
+
+        if (data.photo) {
+            placeholder.style.display = 'none';
+            // Remove any existing image
+            photoWrap.querySelectorAll('img, .detail-photo-credit').forEach(function (el) { el.remove(); });
+            var img = document.createElement('img');
+            img.src = data.photo;
+            img.alt = 'Aircraft photo';
+            img.loading = 'lazy';
+            photoWrap.appendChild(img);
+            if (data.photographer) {
+                var credit = document.createElement('span');
+                credit.className = 'detail-photo-credit';
+                credit.textContent = data.photographer;
+                photoWrap.appendChild(credit);
+            }
+        } else {
+            placeholder.style.display = 'flex';
+            placeholder.textContent = 'No photo available';
+        }
+    }
+
+    function hideDetail() {
+        document.getElementById('aircraft-detail').classList.remove('visible');
+        activeDetailIcao = null;
+    }
+
+    function initDetailPanel() {
+        document.getElementById('detail-close').addEventListener('click', function (e) {
+            e.stopPropagation();
+            hideDetail();
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') hideDetail();
+        });
+    }
+
     function updateMapMarkers(aircraft) {
         markersLayer.clearLayers();
 
@@ -90,6 +208,10 @@
                 offset: [0, -8],
                 className: '',
             });
+
+            marker.on('click', (function (aircraft) {
+                return function () { showDetail(aircraft); };
+            })(ac));
 
             markersLayer.addLayer(marker);
         });
@@ -308,6 +430,7 @@
     function init() {
         initMap();
         initTrendChart();
+        initDetailPanel();
         refreshData();
         setInterval(refreshData, REFRESH_INTERVAL);
     }

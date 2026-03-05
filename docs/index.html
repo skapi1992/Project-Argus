@@ -26,6 +26,44 @@
     <main class="main">
         <div class="map-container">
             <div id="map"></div>
+
+            <!-- Aircraft detail panel (click on marker) -->
+            <div class="aircraft-detail" id="aircraft-detail">
+                <button class="detail-close" id="detail-close" aria-label="Close">&times;</button>
+                <div class="detail-photo-wrap" id="detail-photo-wrap">
+                    <div class="detail-photo-placeholder" id="detail-photo-placeholder">No photo available</div>
+                </div>
+                <div class="detail-body">
+                    <div class="detail-callsign" id="detail-callsign">—</div>
+                    <div class="detail-model" id="detail-model">—</div>
+                    <div class="detail-grid">
+                        <div class="detail-field">
+                            <span class="detail-label">Country</span>
+                            <span class="detail-value" id="detail-country">—</span>
+                        </div>
+                        <div class="detail-field">
+                            <span class="detail-label">ICAO24</span>
+                            <span class="detail-value" id="detail-icao">—</span>
+                        </div>
+                        <div class="detail-field">
+                            <span class="detail-label">Altitude</span>
+                            <span class="detail-value" id="detail-alt">—</span>
+                        </div>
+                        <div class="detail-field">
+                            <span class="detail-label">Speed</span>
+                            <span class="detail-value" id="detail-spd">—</span>
+                        </div>
+                        <div class="detail-field">
+                            <span class="detail-label">Heading</span>
+                            <span class="detail-value" id="detail-hdg">—</span>
+                        </div>
+                        <div class="detail-field">
+                            <span class="detail-label">Status</span>
+                            <span class="detail-value" id="detail-status">—</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <aside class="stats-panel">
