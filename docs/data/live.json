@@ -1,1 +1,1 @@
-{"timestamp":1772662847,"count":2,"aircraft":[{"icao24":"341699","callsign":"SWT2CW","country":"Spain","lat":51.3501,"lon":12.7807,"altitude":6705.6,"velocity":139.45,"heading":275.08,"on_ground":false},{"icao24":"3f4e27","callsign":"GAF637","country":"Germany","lat":52.3002,"lon":13.2024,"altitude":1043.94,"velocity":103.75,"heading":68.78,"on_ground":false}]}
+{"timestamp":1772681789,"count":1,"aircraft":[{"icao24":"34310d","callsign":"BCS1684","country":"Spain","lat":51.2235,"lon":12.5288,"altitude":4130.04,"velocity":182.46,"heading":220.43,"on_ground":false}]}
