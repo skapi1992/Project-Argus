@@ -1,1 +1,1 @@
-{"timestamp":1772812970,"count":1,"aircraft":[{"icao24":"3f7b3c","callsign":"GAF635","country":"Germany","lat":53.9672,"lon":13.8607,"altitude":10111.74,"velocity":238.13,"heading":207.12,"on_ground":false}]}
+{"timestamp":1772816177,"count":2,"aircraft":[{"icao24":"ae599f","callsign":"GRIT00","country":"USA","lat":49.4525,"lon":12.1186,"altitude":1638.3,"velocity":44.48,"heading":95.97,"on_ground":false},{"icao24":"342189","callsign":"FIN01AD","country":"Spain","lat":53.3874,"lon":14.7327,"altitude":10363.2,"velocity":224.39,"heading":208.03,"on_ground":false}]}
