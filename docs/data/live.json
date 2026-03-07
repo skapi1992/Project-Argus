@@ -1,1 +1,1 @@
-{"timestamp":1772910998,"count":2,"aircraft":[{"icao24":"48d982","callsign":"PLF120","country":"Poland","lat":52.1584,"lon":20.9736,"altitude":-30.48,"velocity":78.01,"heading":332.08,"on_ground":false},{"icao24":"48d981","callsign":"PLF130","country":"Poland","lat":49.9809,"lon":21.6947,"altitude":10363.2,"velocity":220.41,"heading":350.05,"on_ground":false}]}
+{"timestamp":1772913094,"count":1,"aircraft":[{"icao24":"4b864b","callsign":"TCARK","country":"Turkey","lat":48.0101,"lon":12.7893,"altitude":12496.8,"velocity":241.57,"heading":123.18,"on_ground":false}]}
