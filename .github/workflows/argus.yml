@@ -41,7 +41,10 @@ jobs:
 
       - name: Test API connectivity
         run: |
-          curl -s -o /dev/null -w "HTTP %{http_code} from api.adsb.lol" https://api.adsb.lol/v2/latn/56.0/lats/48.0/lonw/12.0/lone/26.0 || true
+          for api in api.airplanes.live api.adsb.one api.adsb.fi api.adsb.lol; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "https://${api}/v2/mil" 2>/dev/null || echo "000")
+            echo "${api}: HTTP ${code}"
+          done
 
       - name: Run ingestion
         continue-on-error: true

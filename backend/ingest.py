@@ -1,6 +1,10 @@
 """
-Argus Data Ingestion — Fetches aircraft state vectors from ADSB.lol API
+Argus Data Ingestion — Fetches military aircraft state vectors from ADS-B APIs
 and stores them in the local SQLite database.
+
+Uses a fallback chain of community ADS-B APIs (airplanes.live, adsb.one,
+adsb.fi, adsb.lol) with dedicated /v2/mil endpoints that return pre-tagged
+military aircraft worldwide. All APIs use the ADSBx v2 response format.
 """
 
 import logging
@@ -20,9 +24,16 @@ logger = logging.getLogger("argus.ingest")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "argus.db")
 
-# ADSB.lol bounding box endpoint: Poland + direct neighbours
-# latn=north, lats=south, lonw=west, lone=east
-ADSB_LOL_URL = "https://api.adsb.lol/v2/latn/56.0/lats/48.0/lonw/12.0/lone/26.0"
+# Fallback chain of ADS-B military endpoints (all ADSBx v2 format)
+ADSB_API_URLS = [
+    "https://api.airplanes.live/v2/mil",
+    "https://api.adsb.one/v2/mil",
+    "https://api.adsb.fi/v2/mil",
+    "https://api.adsb.lol/v2/mil",
+]
+
+# Geographic bounding box for Eastern Europe (Poland + neighbours)
+BBOX = {"lat_min": 48.0, "lat_max": 56.0, "lon_min": 12.0, "lon_max": 26.0}
 
 # Unit conversion constants
 FEET_TO_METERS = 0.3048
@@ -76,27 +87,44 @@ def init_db(conn):
 
 
 def fetch_adsb_data():
-    """Fetch aircraft states from ADSB.lol API with retry."""
-    for attempt in range(4):
-        try:
-            resp = requests.get(ADSB_LOL_URL, timeout=30)
-            logger.info("API response: HTTP %d, %d bytes", resp.status_code, len(resp.content))
-            resp.raise_for_status()
-            data = resp.json()
-            logger.info("API returned %d aircraft (msg: %s)", data.get("total", 0), data.get("msg", "N/A"))
-            return data
-        except requests.RequestException as e:
-            logger.warning("API request failed (attempt %d/%d): %s", attempt + 1, 4, e)
-            if attempt < 3:
-                wait = 2 ** (attempt + 1)
-                time.sleep(wait)
+    """Fetch military aircraft from ADS-B APIs with fallback chain.
 
-    logger.error("Failed to fetch data from ADSB.lol after 4 attempts")
+    Tries each API in ADSB_API_URLS sequentially. For each API, retries
+    up to 2 times with exponential backoff before moving to the next.
+    """
+    for url in ADSB_API_URLS:
+        for attempt in range(2):
+            try:
+                logger.info("Trying %s (attempt %d/2)", url, attempt + 1)
+                resp = requests.get(url, timeout=30)
+                logger.info("Response: HTTP %d, %d bytes", resp.status_code, len(resp.content))
+                resp.raise_for_status()
+                data = resp.json()
+                ac_count = len(data.get("ac", []))
+                logger.info("Success: %d military aircraft from %s", ac_count, url)
+                return data
+            except requests.RequestException as e:
+                logger.warning("Failed: %s — %s", url, e)
+                if attempt == 0:
+                    time.sleep(2)
+
+    logger.error("All ADS-B APIs failed")
     return None
 
 
+def in_bbox(lat, lon):
+    """Check if coordinates fall within the Eastern Europe bounding box."""
+    if lat is None or lon is None:
+        return False
+    return (BBOX["lat_min"] <= lat <= BBOX["lat_max"]
+            and BBOX["lon_min"] <= lon <= BBOX["lon_max"])
+
+
 def insert_raw_states(conn, data):
-    """Parse ADSB.lol response and insert aircraft states into the database."""
+    """Parse ADSBx v2 response and insert aircraft states into the database.
+
+    Filters worldwide /v2/mil results to our Eastern Europe bounding box.
+    """
     api_timestamp = int(data.get("now", time.time() * 1000) / 1000)
     aircraft = data.get("ac", [])
 
@@ -105,7 +133,16 @@ def insert_raw_states(conn, data):
         return 0
 
     rows = []
+    skipped = 0
     for ac in aircraft:
+        lat = ac.get("lat")
+        lon = ac.get("lon")
+
+        # Filter to our region of interest
+        if not in_bbox(lat, lon):
+            skipped += 1
+            continue
+
         icao24 = ac.get("hex", "")
         if icao24.startswith("~"):
             icao24 = icao24[1:]
@@ -127,9 +164,9 @@ def insert_raw_states(conn, data):
             api_timestamp,
             icao24,
             ac.get("flight", "").strip() or None,
-            None,              # origin_country (not available in ADSB.lol)
-            ac.get("lat"),
-            ac.get("lon"),
+            None,              # origin_country (not in ADSBx v2 format)
+            lat,
+            lon,
             alt_meters,
             velocity_ms,
             ac.get("track"),
@@ -137,6 +174,8 @@ def insert_raw_states(conn, data):
             on_ground,
             ac.get("category"),
         ))
+
+    logger.info("Filtered %d aircraft in bbox, %d outside region", len(rows), skipped)
 
     conn.executemany(
         """INSERT INTO raw_states
