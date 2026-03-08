@@ -10,11 +10,12 @@ name: Argus Data Pipeline
 #     Accept: application/vnd.github+json
 #   Body: {"event_type": "refresh"}
 #
-#   Set the external cron to run every 2 minutes for consistent data freshness.
+#   Set the external cron to run every 5 minutes for consistent data freshness.
+#   Note: airplanes.live rate limit is 1 req/sec; 5-min interval is safe.
 
 on:
   schedule:
-    - cron: '*/2 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
   repository_dispatch:
     types: [refresh]
@@ -39,11 +40,27 @@ jobs:
       - name: Install dependencies
         run: pip install -r backend/requirements.txt
 
-      - name: Test API connectivity
+      - name: Test API connectivity and sample data
         run: |
           for api in api.airplanes.live api.adsb.one api.adsb.fi api.adsb.lol; do
-            code=$(curl -s -o /dev/null -w "%{http_code}" "https://${api}/v2/mil" 2>/dev/null || echo "000")
-            echo "${api}: HTTP ${code}"
+            echo "--- Testing ${api} ---"
+            resp=$(curl -s -w "\nHTTP_CODE:%{http_code}" "https://${api}/v2/mil" 2>/dev/null || echo "HTTP_CODE:000")
+            code=$(echo "$resp" | grep "HTTP_CODE:" | cut -d: -f2)
+            echo "HTTP status: ${code}"
+            if [ "$code" = "200" ]; then
+              body=$(echo "$resp" | sed '/HTTP_CODE:/d')
+              total=$(echo "$body" | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'Total aircraft: {len(d.get(\"ac\",[]))}')" 2>/dev/null || echo "parse error")
+              echo "$total"
+              echo "$body" | python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+acs=d.get('ac',[])
+# Show first 3 aircraft as sample
+for a in acs[:3]:
+    print(f'  hex={a.get(\"hex\")} flight={a.get(\"flight\",\"\").strip()} lat={a.get(\"lat\")} lon={a.get(\"lon\")} alt={a.get(\"alt_baro\")}')
+" 2>/dev/null || true
+            fi
+            echo ""
           done
 
       - name: Run ingestion
