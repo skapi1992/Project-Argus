@@ -1,1 +1,1 @@
-{"timestamp":1772999870,"count":1,"aircraft":[{"icao24":"4b8533","callsign":"PGT1662","country":"Turkey","lat":48.3404,"lon":14.9712,"altitude":11887.2,"velocity":227.74,"heading":114.13,"on_ground":false}]}
+{"timestamp":1773003263,"count":2,"aircraft":[{"icao24":"4a91f9","callsign":"SAS92U","country":"Sweden","lat":55.6509,"lon":12.7071,"altitude":106.68,"velocity":60.88,"heading":221.23,"on_ground":false},{"icao24":"3424d4","callsign":"VLG45F","country":"Spain","lat":48.1357,"lon":12.3834,"altitude":10668.0,"velocity":248.81,"heading":208.26,"on_ground":false}]}
