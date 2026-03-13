@@ -1,1 +1,1 @@
-{"timestamp":1773382203,"count":1,"aircraft":[{"icao24":"34260e","callsign":"IBE07WM","country":"Spain","lat":48.1187,"lon":16.5588,"altitude":null,"velocity":0.0,"heading":205.31,"on_ground":true}]}
+{"timestamp":1773388585,"count":2,"aircraft":[{"icao24":"3430cd","callsign":"VOE2038","country":"Spain","lat":50.1869,"lon":14.5139,"altitude":1196.34,"velocity":87.43,"heading":249.33,"on_ground":false},{"icao24":"ae0a54","callsign":"DUKE60","country":"USA","lat":48.7976,"lon":12.2952,"altitude":8229.6,"velocity":143.54,"heading":106.88,"on_ground":false}]}
