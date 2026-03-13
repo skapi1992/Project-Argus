@@ -1,1 +1,1 @@
-{"timestamp":1773379791,"count":2,"aircraft":[{"icao24":"4984b5","callsign":"CEF628","country":"Czech Republic","lat":52.1717,"lon":19.1289,"altitude":5791.2,"velocity":128.81,"heading":46.29,"on_ground":false},{"icao24":"341699","callsign":"SWT1KR","country":"Spain","lat":53.3864,"lon":17.7383,"altitude":5791.2,"velocity":136.89,"heading":73.4,"on_ground":false}]}
+{"timestamp":1773382203,"count":1,"aircraft":[{"icao24":"34260e","callsign":"IBE07WM","country":"Spain","lat":48.1187,"lon":16.5588,"altitude":null,"velocity":0.0,"heading":205.31,"on_ground":true}]}
