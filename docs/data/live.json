@@ -1,1 +1,1 @@
-{"timestamp":1773507825,"count":2,"aircraft":[{"icao24":"3b75ed","callsign":"CTM2077","country":"France","lat":51.4961,"lon":14.4013,"altitude":7322.82,"velocity":170.19,"heading":103.99,"on_ground":false},{"icao24":"4b8e04","callsign":"PGT41HD","country":"Turkey","lat":48.6163,"lon":14.0489,"altitude":11582.4,"velocity":228.55,"heading":294.89,"on_ground":false}]}
+{"timestamp":1773509954,"count":1,"aircraft":[{"icao24":"45f426","callsign":"DAF5868","country":"Denmark","lat":55.5257,"lon":12.5032,"altitude":533.4,"velocity":118.63,"heading":37.07,"on_ground":false}]}
