@@ -1,1 +1,1 @@
-{"timestamp":1773526791,"count":2,"aircraft":[{"icao24":"47880f","callsign":"NOZ89Z","country":"Norway","lat":52.0404,"lon":19.5892,"altitude":7871.46,"velocity":238.59,"heading":337.03,"on_ground":false},{"icao24":"4a91f8","callsign":"SAS2776","country":"Sweden","lat":52.2423,"lon":18.1084,"altitude":11582.4,"velocity":226.58,"heading":326.2,"on_ground":false}]}
+{"timestamp":1773528511,"count":1,"aircraft":[{"icao24":"4a91f8","callsign":"SAS2776","country":"Sweden","lat":55.3272,"lon":13.727,"altitude":4884.42,"velocity":173.88,"heading":311.28,"on_ground":false}]}
