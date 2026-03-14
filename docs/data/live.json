@@ -1,1 +1,1 @@
-{"timestamp":1773442024,"count":1,"aircraft":[{"icao24":"341119","callsign":"BCS9LE","country":"Spain","lat":51.2055,"lon":12.2606,"altitude":2232.66,"velocity":156.45,"heading":63.01,"on_ground":false}]}
+{"timestamp":1773466212,"count":2,"aircraft":[{"icao24":"ae0136","callsign":"DUKE61","country":"USA","lat":51.0548,"lon":12.3743,"altitude":9144.0,"velocity":196.76,"heading":253.13,"on_ground":false},{"icao24":"4a91b2","callsign":"SAS950","country":"Sweden","lat":55.5464,"lon":12.2866,"altitude":1120.14,"velocity":145.42,"heading":154.43,"on_ground":false}]}
