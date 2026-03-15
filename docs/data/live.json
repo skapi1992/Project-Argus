@@ -1,1 +1,1 @@
-{"timestamp":1773568041,"count":1,"aircraft":[{"icao24":"4a81f4","callsign":"SVF679","country":"Sweden","lat":50.2181,"lon":21.6478,"altitude":1752.6,"velocity":127.91,"heading":164.85,"on_ground":false}]}
+{"timestamp":1773569653,"count":2,"aircraft":[{"icao24":"4a91f8","callsign":"SAS768","country":"Sweden","lat":50.6769,"lon":14.1729,"altitude":7193.28,"velocity":206.36,"heading":7.16,"on_ground":false},{"icao24":"ae04be","callsign":"RCH277","country":"USA","lat":48.914,"lon":16.5185,"altitude":11277.6,"velocity":239.82,"heading":109.29,"on_ground":false}]}
