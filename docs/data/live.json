@@ -1,1 +1,1 @@
-{"timestamp":1773615467,"count":2,"aircraft":[{"icao24":"34310d","callsign":"BCS5916","country":"Spain","lat":51.4093,"lon":12.2314,"altitude":null,"velocity":1.29,"heading":281.25,"on_ground":true},{"icao24":"3ea12c","callsign":"GAF927","country":"Germany","lat":52.3823,"lon":13.5275,"altitude":null,"velocity":4.37,"heading":106.88,"on_ground":true}]}
+{"timestamp":1773617745,"count":1,"aircraft":[{"icao24":"34310d","callsign":"BCS5916","country":"Spain","lat":51.2435,"lon":15.6717,"altitude":9448.8,"velocity":234.14,"heading":109.51,"on_ground":false}]}
