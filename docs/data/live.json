@@ -1,1 +1,1 @@
-{"timestamp":1773686453,"count":2,"aircraft":[{"icao24":"ae6cbf","callsign":"HUNT23","country":"USA","lat":52.377,"lon":17.8761,"altitude":152.4,"velocity":11.88,"heading":287.65,"on_ground":false},{"icao24":"3424d2","callsign":"VLG36K","country":"Spain","lat":55.1239,"lon":12.5075,"altitude":3253.74,"velocity":157.73,"heading":36.65,"on_ground":false}]}
+{"timestamp":1773694891,"count":1,"aircraft":[{"icao24":"341699","callsign":"SWT2SO","country":"Spain","lat":48.7297,"lon":13.125,"altitude":6705.6,"velocity":122.71,"heading":303.02,"on_ground":false}]}
