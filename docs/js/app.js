@@ -122,55 +122,70 @@
             return;
         }
 
-        // Fetch aircraft type + photo in parallel
+        // Step 1: Fetch aircraft metadata from hexdb (need reg + type for photo lookup)
         var result = { model: null, photo: null, photographer: null };
-        var typeCode = null;
 
-        var typePromise = fetch('https://hexdb.io/api/v1/aircraft/' + icao)
+        function extractPhoto(data) {
+            if (data && data.photos && data.photos.length) {
+                var photo = data.photos[0];
+                result.photo = photo.thumbnail_large ? photo.thumbnail_large.src : (photo.thumbnail ? photo.thumbnail.src : null);
+                result.photographer = photo.photographer || null;
+            }
+        }
+
+        fetch('https://hexdb.io/api/v1/aircraft/' + icao)
             .then(function (r) { return r.ok ? r.json() : null; })
-            .then(function (data) {
-                if (data) {
+            .catch(function () { return null; })
+            .then(function (hexdbData) {
+                var reg = null;
+                var typeCode = null;
+
+                if (hexdbData) {
                     var parts = [];
-                    if (data.Manufacturer) parts.push(data.Manufacturer);
-                    if (data.Type) parts.push(data.Type);
-                    if (data.RegisteredOwners) parts.push('(' + data.RegisteredOwners + ')');
+                    if (hexdbData.Manufacturer) parts.push(hexdbData.Manufacturer);
+                    if (hexdbData.Type) parts.push(hexdbData.Type);
+                    if (hexdbData.RegisteredOwners) parts.push('(' + hexdbData.RegisteredOwners + ')');
                     result.model = parts.join(' ') || null;
-                    typeCode = data.ICAOTypeCode || null;
+                    reg = hexdbData.Registration || null;
+                    typeCode = hexdbData.ICAOTypeCode || null;
                 }
-            })
-            .catch(function () { /* ignore */ });
 
-        var photoPromise = fetch('https://api.planespotters.net/pub/photos/hex/' + icao)
-            .then(function (r) { return r.ok ? r.json() : null; })
-            .then(function (data) {
-                if (data && data.photos && data.photos.length) {
-                    var photo = data.photos[0];
-                    result.photo = photo.thumbnail_large ? photo.thumbnail_large.src : (photo.thumbnail ? photo.thumbnail.src : null);
-                    result.photographer = photo.photographer || null;
-                }
-            })
-            .catch(function () { /* ignore */ });
+                // Step 2: Planespotters by hex with reg + type hints (ADSBx approach)
+                var photoUrl = 'https://api.planespotters.net/pub/photos/hex/' + icao;
+                var params = [];
+                if (reg) params.push('reg=' + encodeURIComponent(reg));
+                if (typeCode) params.push('icaoType=' + encodeURIComponent(typeCode));
+                if (params.length) photoUrl += '?' + params.join('&');
 
-        Promise.all([typePromise, photoPromise]).then(function () {
-            // Fallback: if no photo by hex but we have a type code, try by type
-            if (!result.photo && typeCode) {
-                return fetch('https://api.planespotters.net/pub/photos/types/' + typeCode)
+                return fetch(photoUrl)
                     .then(function (r) { return r.ok ? r.json() : null; })
-                    .then(function (data) {
-                        if (data && data.photos && data.photos.length) {
-                            var photo = data.photos[0];
-                            result.photo = photo.thumbnail_large ? photo.thumbnail_large.src : (photo.thumbnail ? photo.thumbnail.src : null);
-                            result.photographer = photo.photographer || null;
+                    .then(function (data) { extractPhoto(data); })
+                    .catch(function () { /* ignore */ })
+                    .then(function () {
+                        // Step 3: Fallback — Planespotters by registration
+                        if (!result.photo && reg) {
+                            return fetch('https://api.planespotters.net/pub/photos/reg/' + encodeURIComponent(reg))
+                                .then(function (r) { return r.ok ? r.json() : null; })
+                                .then(function (data) { extractPhoto(data); })
+                                .catch(function () { /* ignore */ });
                         }
                     })
-                    .catch(function () { /* ignore */ });
-            }
-        }).then(function () {
-            aircraftCache[icao] = result;
-            if (activeDetailIcao === icao) {
-                applyDetailData(result);
-            }
-        });
+                    .then(function () {
+                        // Step 4: Fallback — Planespotters by type code (same model)
+                        if (!result.photo && typeCode) {
+                            return fetch('https://api.planespotters.net/pub/photos/types/' + encodeURIComponent(typeCode))
+                                .then(function (r) { return r.ok ? r.json() : null; })
+                                .then(function (data) { extractPhoto(data); })
+                                .catch(function () { /* ignore */ });
+                        }
+                    });
+            })
+            .then(function () {
+                aircraftCache[icao] = result;
+                if (activeDetailIcao === icao) {
+                    applyDetailData(result);
+                }
+            });
     }
 
     function applyDetailData(data) {
