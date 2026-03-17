@@ -130,6 +130,130 @@ def export_trend(conn):
     logger.info("Exported trend.json: %d data points", len(points))
 
 
+# --- Alert evaluation ---
+
+# High-value asset type codes (AWACS, tankers, reconnaissance, strategic)
+HIGH_VALUE_TYPES = {
+    "E3CF", "E3TF", "E6",    # AWACS / C2
+    "K35R", "KC46", "A332",   # Tankers
+    "RC135", "P8", "RQ4",     # ISR
+    "C17", "C5M", "C130",     # Strategic airlift
+}
+
+# Known AWACS/tanker callsign prefixes
+HVA_CALLSIGN_PREFIXES = (
+    "NATO", "MAGIC", "DARKSTAR", "DISCO",  # AWACS
+    "LAGR", "STEEL", "GOLD", "ETHYL",      # Tankers
+    "JAKE", "OLIVE", "HOMER",              # RC-135 variants
+)
+
+
+def evaluate_alerts(conn, current_count, avg_24h, avg_7d, peak, now):
+    """Evaluate alert rules and return a list of active alerts, ordered by severity."""
+    alerts = []
+
+    # Rule 1: Count above 24h average by 50%+ → ELEVATED
+    if avg_24h and avg_24h > 0 and current_count > avg_24h * 1.5:
+        ratio = round(current_count / avg_24h, 1)
+        alerts.append({
+            "level": "ELEVATED",
+            "rule": "count_above_average",
+            "message": "%d aircraft — %.1fx above 24h avg (%.1f)" % (current_count, ratio, avg_24h),
+            "triggered_at": now,
+        })
+
+    # Rule 2: Count exceeds 7-day peak → HIGH
+    if peak and current_count > peak:
+        alerts.append({
+            "level": "HIGH",
+            "rule": "count_exceeds_peak",
+            "message": "%d aircraft exceeds 7-day peak (%d)" % (current_count, peak),
+            "triggered_at": now,
+        })
+
+    # Rule 3: Surge detection — count doubled within last 30 minutes → CRITICAL
+    cutoff_30m = now - 1800
+    row = conn.execute(
+        "SELECT MIN(total_count) FROM military_counts WHERE timestamp >= ?",
+        (cutoff_30m,),
+    ).fetchone()
+    prev_min = row[0] if row and row[0] is not None else None
+    if prev_min is not None and prev_min > 0 and current_count >= prev_min * 2:
+        alerts.append({
+            "level": "CRITICAL",
+            "rule": "count_surge",
+            "message": "Surge detected: %d aircraft (was %d within 30 min)" % (current_count, prev_min),
+            "triggered_at": now,
+        })
+
+    # Rule 4: High-value asset detection (tankers/AWACS/ISR ≥ 3) → HIGH
+    hva_count = 0
+    hva_names = []
+    latest_row = conn.execute(
+        "SELECT MAX(timestamp) FROM military_positions"
+    ).fetchone()
+    if latest_row and latest_row[0]:
+        positions = conn.execute(
+            "SELECT callsign FROM military_positions WHERE timestamp = ?",
+            (latest_row[0],),
+        ).fetchall()
+        for (callsign,) in positions:
+            cs = (callsign or "").strip().upper()
+            if any(cs.startswith(p) for p in HVA_CALLSIGN_PREFIXES):
+                hva_count += 1
+                hva_names.append(cs)
+        if hva_count >= 3:
+            alerts.append({
+                "level": "HIGH",
+                "rule": "high_value_assets",
+                "message": "%d high-value assets airborne (%s)" % (hva_count, ", ".join(hva_names[:4])),
+                "triggered_at": now,
+            })
+
+    # Rule 5: New country detected (not seen in last 7 days) → ELEVATED
+    cutoff_7d = now - (7 * 86400)
+    recent_countries = set()
+    rows = conn.execute(
+        "SELECT DISTINCT country_breakdown FROM military_counts WHERE timestamp >= ? AND timestamp < ?",
+        (cutoff_7d, now - 600),  # exclude last 10 min to compare against history
+    ).fetchall()
+    for (breakdown_json,) in rows:
+        try:
+            breakdown = json.loads(breakdown_json) if breakdown_json else {}
+            recent_countries.update(breakdown.keys())
+        except json.JSONDecodeError:
+            pass
+
+    current_breakdown_row = conn.execute(
+        "SELECT country_breakdown FROM military_counts ORDER BY timestamp DESC LIMIT 1"
+    ).fetchone()
+    if current_breakdown_row and current_breakdown_row[0]:
+        try:
+            current_countries = set(json.loads(current_breakdown_row[0]).keys())
+            new_countries = current_countries - recent_countries
+            if new_countries and recent_countries:  # only if we have history to compare
+                alerts.append({
+                    "level": "ELEVATED",
+                    "rule": "new_country_detected",
+                    "message": "New origin countr%s: %s" % (
+                        "ies" if len(new_countries) > 1 else "y",
+                        ", ".join(sorted(new_countries)),
+                    ),
+                    "triggered_at": now,
+                })
+        except json.JSONDecodeError:
+            pass
+
+    # Sort by severity: CRITICAL > HIGH > ELEVATED
+    level_order = {"CRITICAL": 0, "HIGH": 1, "ELEVATED": 2}
+    alerts.sort(key=lambda a: level_order.get(a["level"], 9))
+
+    if alerts:
+        logger.info("Alerts triggered: %s", [a["rule"] for a in alerts])
+
+    return alerts
+
+
 def load_existing_stats():
     """Load previously committed stats.json to preserve historical peak/low."""
     path = os.path.join(DATA_DIR, "stats.json")
@@ -240,6 +364,9 @@ def export_stats(conn):
         country_breakdown.items(), key=lambda x: x[1], reverse=True
     )
 
+    # --- Alert evaluation ---
+    alerts = evaluate_alerts(conn, current_count, avg_24h, avg_7d, peak, now)
+
     stats_data = {
         "current_count": current_count,
         "avg_24h": avg_24h,
@@ -249,12 +376,13 @@ def export_stats(conn):
         "low": low,
         "last_updated": last_updated,
         "countries": [{"name": k, "count": v} for k, v in sorted_countries],
+        "alerts": alerts,
     }
 
     path = os.path.join(DATA_DIR, "stats.json")
     with open(path, "w") as f:
         json.dump(stats_data, f, separators=(",", ":"))
-    logger.info("Exported stats.json: current=%d, peak=%d", current_count, peak)
+    logger.info("Exported stats.json: current=%d, peak=%d, alerts=%d", current_count, peak, len(alerts))
 
 
 def load_existing_history(date_str):

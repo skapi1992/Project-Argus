@@ -127,6 +127,213 @@ a:hover {
     border-bottom: 1px solid rgba(220, 60, 60, 0.25);
 }
 
+/* Alert level colors */
+:root {
+    --alert-elevated: #d4a853;
+    --alert-high: #e07020;
+    --alert-critical: #c0392b;
+}
+
+/* Alert card */
+.alert-card {
+    display: none;
+    padding: 16px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    border-left: 3px solid var(--alert-elevated);
+    background: rgba(212, 168, 83, 0.06);
+    position: relative;
+    animation: alertSlideIn 0.25s ease-out;
+}
+
+.alert-card.visible {
+    display: block;
+}
+
+.alert-card.alert-elevated {
+    border-left-color: var(--alert-elevated);
+    background: rgba(212, 168, 83, 0.06);
+}
+
+.alert-card.alert-high {
+    border-left-color: var(--alert-high);
+    background: rgba(224, 112, 32, 0.06);
+}
+
+.alert-card.alert-critical {
+    border-left-color: var(--alert-critical);
+    background: rgba(192, 57, 43, 0.08);
+}
+
+@keyframes alertSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.alert-level-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: rgba(212, 168, 83, 0.15);
+    color: var(--alert-elevated);
+}
+
+.alert-card.alert-high .alert-level-badge {
+    background: rgba(224, 112, 32, 0.15);
+    color: var(--alert-high);
+}
+
+.alert-card.alert-critical .alert-level-badge {
+    background: rgba(192, 57, 43, 0.15);
+    color: var(--alert-critical);
+}
+
+.alert-card.alert-critical .alert-level-badge {
+    animation: alertPulse 2s ease-in-out infinite;
+}
+
+@keyframes alertPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.alert-dismiss {
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 16px;
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+}
+
+.alert-dismiss:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.alert-message {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+.alert-details {
+    display: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.alert-details.expanded {
+    display: block;
+}
+
+.alert-detail-item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 2px 0;
+}
+
+.alert-detail-rule {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    opacity: 0.7;
+    flex-shrink: 0;
+}
+
+.alert-detail-msg {
+    color: var(--text-secondary);
+}
+
+.alert-toggle-details {
+    background: none;
+    border: none;
+    color: var(--accent-secondary);
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+    margin-top: 6px;
+    transition: color 0.15s;
+}
+
+.alert-toggle-details:hover {
+    color: var(--text-primary);
+}
+
+/* Header alert status overrides */
+.header-live.alert-elevated-dot {
+    color: var(--alert-elevated);
+}
+
+.header-live.alert-elevated-dot::before {
+    background: var(--alert-elevated);
+}
+
+.header-live.alert-high-dot {
+    color: var(--alert-high);
+}
+
+.header-live.alert-high-dot::before {
+    background: var(--alert-high);
+    animation: pulse 1.2s ease-in-out infinite;
+}
+
+.header-live.alert-critical-dot {
+    color: var(--alert-critical);
+}
+
+.header-live.alert-critical-dot::before {
+    background: var(--alert-critical);
+    animation: pulse 0.8s ease-in-out infinite;
+}
+
+/* Alert card minimized (after dismiss) */
+.alert-card.minimized {
+    display: block;
+    padding: 0;
+    border-bottom: none;
+    height: 3px;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.alert-card.minimized .alert-header,
+.alert-card.minimized .alert-message,
+.alert-card.minimized .alert-details,
+.alert-card.minimized .alert-toggle-details {
+    display: none;
+}
+
 /* Header status dot overrides for staleness */
 .header-live.stale-warning-dot::before {
     background: #d4a853;

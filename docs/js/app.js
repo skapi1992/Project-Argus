@@ -24,6 +24,10 @@
     let activeDetailIcao = null;
     const aircraftCache = {}; // cache for model + photo lookups
 
+    // Alert state
+    let alertDismissed = false;   // user dismissed the current alert set
+    let alertDetailsExpanded = false;
+
     // Timeline state
     let timelineMode = 'live'; // 'live' or 'history'
     const historyCache = {};   // date string -> { snapshots: [...] }
@@ -460,6 +464,7 @@
         setText('low', stats.low != null ? stats.low : '—');
 
         updateCountryList(stats.countries || []);
+        updateAlerts(stats.alerts || []);
         updateLastUpdated(stats.last_updated);
     }
 
@@ -479,6 +484,117 @@
                             <span class="country-count">${c.count}</span>`;
             list.appendChild(li);
         });
+    }
+
+    // --- Alerts ---
+
+    function updateAlerts(alerts) {
+        var card = document.getElementById('alert-card');
+        var headerStatus = document.getElementById('header-status');
+        if (!card) return;
+
+        // No alerts → hide card, reset header
+        if (!alerts || !alerts.length) {
+            card.classList.remove('visible', 'minimized', 'alert-elevated', 'alert-high', 'alert-critical');
+            alertDismissed = false;
+            if (timelineMode === 'live' && headerStatus) {
+                headerStatus.className = 'header-live';
+                headerStatus.textContent = 'Live';
+            }
+            return;
+        }
+
+        // Highest severity alert drives the card appearance
+        var top = alerts[0]; // already sorted CRITICAL > HIGH > ELEVATED by backend
+        var level = (top.level || 'ELEVATED').toUpperCase();
+
+        // Update header status badge
+        if (timelineMode === 'live' && headerStatus) {
+            var dotClass = 'alert-elevated-dot';
+            if (level === 'HIGH') dotClass = 'alert-high-dot';
+            if (level === 'CRITICAL') dotClass = 'alert-critical-dot';
+            headerStatus.className = 'header-live ' + dotClass;
+            headerStatus.textContent = level;
+        }
+
+        // If user dismissed and it's the same alert set, keep minimized
+        if (alertDismissed) {
+            card.className = 'alert-card visible minimized alert-' + level.toLowerCase();
+            return;
+        }
+
+        // Show the full alert card
+        card.className = 'alert-card visible alert-' + level.toLowerCase();
+
+        // Badge
+        var badge = document.getElementById('alert-level-badge');
+        if (badge) badge.textContent = level;
+
+        // Primary message (top alert)
+        var msg = document.getElementById('alert-message');
+        if (msg) msg.textContent = top.message || '';
+
+        // Details (all alerts listed)
+        var details = document.getElementById('alert-details');
+        if (details) {
+            details.innerHTML = '';
+            alerts.forEach(function (a) {
+                var item = document.createElement('div');
+                item.className = 'alert-detail-item';
+                var rule = document.createElement('span');
+                rule.className = 'alert-detail-rule';
+                rule.textContent = a.level;
+                var text = document.createElement('span');
+                text.className = 'alert-detail-msg';
+                text.textContent = a.message;
+                item.appendChild(rule);
+                item.appendChild(text);
+                details.appendChild(item);
+            });
+            if (alertDetailsExpanded) {
+                details.classList.add('expanded');
+            }
+        }
+
+        // Toggle button visibility (only show if >1 alert)
+        var toggleBtn = document.getElementById('alert-toggle-details');
+        if (toggleBtn) {
+            toggleBtn.style.display = alerts.length > 1 ? '' : 'none';
+        }
+    }
+
+    function initAlertCard() {
+        var dismissBtn = document.getElementById('alert-dismiss');
+        var toggleBtn = document.getElementById('alert-toggle-details');
+        var card = document.getElementById('alert-card');
+
+        if (dismissBtn) {
+            dismissBtn.addEventListener('click', function () {
+                alertDismissed = true;
+                if (card) card.classList.add('minimized');
+            });
+        }
+
+        // Click minimized bar to restore
+        if (card) {
+            card.addEventListener('click', function () {
+                if (card.classList.contains('minimized')) {
+                    alertDismissed = false;
+                    card.classList.remove('minimized');
+                }
+            });
+        }
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function () {
+                var details = document.getElementById('alert-details');
+                if (details) {
+                    alertDetailsExpanded = !alertDetailsExpanded;
+                    details.classList.toggle('expanded');
+                    toggleBtn.textContent = alertDetailsExpanded ? 'Hide details' : 'Show details';
+                }
+            });
+        }
     }
 
     function updateLastUpdated(timestamp) {
@@ -653,7 +769,15 @@
 
         // Update UI
         document.getElementById('tl-live').classList.remove('active');
-        document.getElementById('header-status').textContent = 'History';
+        var headerStatus = document.getElementById('header-status');
+        if (headerStatus) {
+            headerStatus.className = 'header-live';
+            headerStatus.textContent = 'History';
+        }
+
+        // Hide alert card during history playback
+        var alertCard = document.getElementById('alert-card');
+        if (alertCard) alertCard.classList.remove('visible', 'minimized');
     }
 
     function enterLiveMode() {
@@ -781,6 +905,7 @@
         initMap();
         initTrendChart();
         initDetailPanel();
+        initAlertCard();
         initTimeline();
         refreshData();
         refreshTimer = setInterval(refreshData, REFRESH_INTERVAL);
