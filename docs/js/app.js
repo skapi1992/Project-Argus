@@ -124,6 +124,7 @@
 
         // Fetch aircraft type + photo in parallel
         var result = { model: null, photo: null, photographer: null };
+        var typeCode = null;
 
         var typePromise = fetch('https://hexdb.io/api/v1/aircraft/' + icao)
             .then(function (r) { return r.ok ? r.json() : null; })
@@ -134,6 +135,7 @@
                     if (data.Type) parts.push(data.Type);
                     if (data.RegisteredOwners) parts.push('(' + data.RegisteredOwners + ')');
                     result.model = parts.join(' ') || null;
+                    typeCode = data.ICAOTypeCode || null;
                 }
             })
             .catch(function () { /* ignore */ });
@@ -150,8 +152,21 @@
             .catch(function () { /* ignore */ });
 
         Promise.all([typePromise, photoPromise]).then(function () {
+            // Fallback: if no photo by hex but we have a type code, try by type
+            if (!result.photo && typeCode) {
+                return fetch('https://api.planespotters.net/pub/photos/types/' + typeCode)
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (data) {
+                        if (data && data.photos && data.photos.length) {
+                            var photo = data.photos[0];
+                            result.photo = photo.thumbnail_large ? photo.thumbnail_large.src : (photo.thumbnail ? photo.thumbnail.src : null);
+                            result.photographer = photo.photographer || null;
+                        }
+                    })
+                    .catch(function () { /* ignore */ });
+            }
+        }).then(function () {
             aircraftCache[icao] = result;
-            // Only apply if this aircraft is still selected
             if (activeDetailIcao === icao) {
                 applyDetailData(result);
             }
