@@ -137,31 +137,31 @@ a:hover {
 /* Alert card */
 .alert-card {
     display: none;
-    padding: 16px 20px 14px;
+    padding: 14px 20px 12px;
     border-bottom: 1px solid var(--border);
-    border-left: 3px solid var(--alert-elevated);
-    background: rgba(212, 168, 83, 0.06);
+    border-left: 2px solid var(--alert-elevated);
+    background: transparent;
     position: relative;
-    animation: alertSlideIn 0.25s ease-out;
 }
 
 .alert-card.visible {
     display: block;
+    animation: alertSlideIn 0.25s ease-out;
 }
 
 .alert-card.alert-elevated {
     border-left-color: var(--alert-elevated);
-    background: rgba(212, 168, 83, 0.06);
+    background: rgba(212, 168, 83, 0.03);
 }
 
 .alert-card.alert-high {
     border-left-color: var(--alert-high);
-    background: rgba(224, 112, 32, 0.06);
+    background: rgba(224, 112, 32, 0.04);
 }
 
 .alert-card.alert-critical {
     border-left-color: var(--alert-critical);
-    background: rgba(192, 57, 43, 0.08);
+    background: rgba(192, 57, 43, 0.05);
 }
 
 @keyframes alertSlideIn {
@@ -184,26 +184,23 @@ a:hover {
 
 .alert-level-badge {
     font-size: 10px;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 1.5px;
     text-transform: uppercase;
     padding: 2px 8px;
     border-radius: 3px;
-    background: rgba(212, 168, 83, 0.15);
+    background: rgba(212, 168, 83, 0.08);
     color: var(--alert-elevated);
 }
 
 .alert-card.alert-high .alert-level-badge {
-    background: rgba(224, 112, 32, 0.15);
+    background: rgba(224, 112, 32, 0.08);
     color: var(--alert-high);
 }
 
 .alert-card.alert-critical .alert-level-badge {
-    background: rgba(192, 57, 43, 0.15);
+    background: rgba(192, 57, 43, 0.10);
     color: var(--alert-critical);
-}
-
-.alert-card.alert-critical .alert-level-badge {
     animation: alertPulse 2s ease-in-out infinite;
 }
 
@@ -232,9 +229,9 @@ a:hover {
 }
 
 .alert-message {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-secondary);
     line-height: 1.4;
 }
 
@@ -321,10 +318,12 @@ a:hover {
 .alert-card.minimized {
     display: block;
     padding: 0;
-    border-bottom: none;
-    height: 3px;
+    border-bottom: 1px solid var(--border);
+    border-left-width: 2px;
+    height: 2px;
     cursor: pointer;
     overflow: hidden;
+    background: transparent;
 }
 
 .alert-card.minimized .alert-header,

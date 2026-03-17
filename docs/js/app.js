@@ -493,9 +493,13 @@
         var headerStatus = document.getElementById('header-status');
         if (!card) return;
 
+        // Filter out alerts with no message
+        var valid = (alerts || []).filter(function (a) { return a && a.message; });
+
         // No alerts → hide card, reset header
-        if (!alerts || !alerts.length) {
+        if (!valid.length) {
             card.classList.remove('visible', 'minimized', 'alert-elevated', 'alert-high', 'alert-critical');
+            card.setAttribute('aria-hidden', 'true');
             alertDismissed = false;
             if (timelineMode === 'live' && headerStatus) {
                 headerStatus.className = 'header-live';
@@ -505,7 +509,7 @@
         }
 
         // Highest severity alert drives the card appearance
-        var top = alerts[0]; // already sorted CRITICAL > HIGH > ELEVATED by backend
+        var top = valid[0]; // already sorted CRITICAL > HIGH > ELEVATED by backend
         var level = (top.level || 'ELEVATED').toUpperCase();
 
         // Update header status badge
@@ -525,6 +529,7 @@
 
         // Show the full alert card
         card.className = 'alert-card visible alert-' + level.toLowerCase();
+        card.setAttribute('aria-hidden', 'false');
 
         // Badge
         var badge = document.getElementById('alert-level-badge');
@@ -532,13 +537,13 @@
 
         // Primary message (top alert)
         var msg = document.getElementById('alert-message');
-        if (msg) msg.textContent = top.message || '';
+        if (msg) msg.textContent = top.message;
 
         // Details (all alerts listed)
         var details = document.getElementById('alert-details');
         if (details) {
             details.innerHTML = '';
-            alerts.forEach(function (a) {
+            valid.forEach(function (a) {
                 var item = document.createElement('div');
                 item.className = 'alert-detail-item';
                 var rule = document.createElement('span');
@@ -553,13 +558,15 @@
             });
             if (alertDetailsExpanded) {
                 details.classList.add('expanded');
+            } else {
+                details.classList.remove('expanded');
             }
         }
 
         // Toggle button visibility (only show if >1 alert)
         var toggleBtn = document.getElementById('alert-toggle-details');
         if (toggleBtn) {
-            toggleBtn.style.display = alerts.length > 1 ? '' : 'none';
+            toggleBtn.style.display = valid.length > 1 ? '' : 'none';
         }
     }
 
@@ -569,7 +576,8 @@
         var card = document.getElementById('alert-card');
 
         if (dismissBtn) {
-            dismissBtn.addEventListener('click', function () {
+            dismissBtn.addEventListener('click', function (e) {
+                e.stopPropagation(); // prevent card click from restoring
                 alertDismissed = true;
                 if (card) card.classList.add('minimized');
             });
@@ -586,7 +594,8 @@
         }
 
         if (toggleBtn) {
-            toggleBtn.addEventListener('click', function () {
+            toggleBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
                 var details = document.getElementById('alert-details');
                 if (details) {
                     alertDetailsExpanded = !alertDetailsExpanded;
