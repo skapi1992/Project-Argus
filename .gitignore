@@ -1,0 +1,6 @@
+# Ephemeral SQLite database (rebuilt each pipeline run)
+argus.db
+
+# Python bytecode
+__pycache__/
+*.pyc

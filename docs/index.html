@@ -15,7 +15,7 @@
 <body>
     <header class="header">
         <div class="header-inner">
-            <span class="header-title">ARGUS</span>
+            <span class="header-title">PROJECT ARGUS</span>
             <span class="header-sep">&middot;</span>
             <span class="header-subtitle">Military Airspace Monitor</span>
             <span class="header-sep">&middot;</span>
@@ -23,9 +23,49 @@
         </div>
     </header>
 
+    <div class="stale-banner" id="stale-banner"></div>
+
     <main class="main">
         <div class="map-container">
             <div id="map"></div>
+
+            <!-- Aircraft detail panel (click on marker) -->
+            <div class="aircraft-detail" id="aircraft-detail">
+                <button class="detail-close" id="detail-close" aria-label="Close">&times;</button>
+                <div class="detail-photo-wrap" id="detail-photo-wrap">
+                    <div class="detail-photo-placeholder" id="detail-photo-placeholder">No photo available</div>
+                </div>
+                <div class="detail-body">
+                    <div class="detail-callsign" id="detail-callsign">—</div>
+                    <div class="detail-model" id="detail-model">—</div>
+                    <div class="detail-grid">
+                        <div class="detail-field">
+                            <span class="detail-label">Country</span>
+                            <span class="detail-value" id="detail-country">—</span>
+                        </div>
+                        <div class="detail-field">
+                            <span class="detail-label">ICAO24</span>
+                            <span class="detail-value" id="detail-icao">—</span>
+                        </div>
+                        <div class="detail-field">
+                            <span class="detail-label">Altitude</span>
+                            <span class="detail-value" id="detail-alt">—</span>
+                        </div>
+                        <div class="detail-field">
+                            <span class="detail-label">Speed</span>
+                            <span class="detail-value" id="detail-spd">—</span>
+                        </div>
+                        <div class="detail-field">
+                            <span class="detail-label">Heading</span>
+                            <span class="detail-value" id="detail-hdg">—</span>
+                        </div>
+                        <div class="detail-field">
+                            <span class="detail-label">Status</span>
+                            <span class="detail-value" id="detail-status">—</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <aside class="stats-panel">
@@ -58,6 +98,12 @@
                 <div class="chart-container">
                     <canvas id="trend-chart"></canvas>
                 </div>
+                <div class="timeline-controls" id="timeline-controls">
+                    <button class="tl-btn" id="tl-play" aria-label="Play" title="Play timeline">&#9654;</button>
+                    <input type="range" class="tl-slider" id="tl-slider" min="0" max="0" value="0">
+                    <button class="tl-btn tl-live-btn active" id="tl-live" title="Return to live">LIVE</button>
+                </div>
+                <div class="tl-timestamp" id="tl-timestamp"></div>
             </section>
 
             <section class="stat-section">
@@ -70,7 +116,7 @@
     </main>
 
     <footer class="footer">
-        <span>Data: <a href="https://opensky-network.org" target="_blank" rel="noopener">OpenSky Network</a></span>
+        <span>Data: <a href="https://www.adsb.lol" target="_blank" rel="noopener">ADSB.lol</a> (ODbL)</span>
         <span class="footer-sep">&middot;</span>
         <span id="last-updated">Updated: —</span>
         <span class="footer-sep">&middot;</span>

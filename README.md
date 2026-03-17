@@ -4,17 +4,17 @@ Military Airspace Observation System — a static, read-only dashboard monitorin
 
 ## What it does
 
-- Pulls real-time aircraft data from the [OpenSky Network](https://opensky-network.org) public API
+- Pulls real-time aircraft data from the [ADSB.lol](https://www.adsb.lol) API (free, no auth required)
 - Filters for military aircraft using ICAO 24-bit address ranges and known callsign patterns
 - Displays an interactive dark-themed map with live military aircraft positions
 - Shows trend statistics: current count, daily/weekly averages, peaks, and per-country breakdown
-- Runs entirely on GitHub Pages with data updates via GitHub Actions every 5 minutes
+- Runs entirely on GitHub Pages with data updates via GitHub Actions every 2 minutes
 
 ## Architecture
 
 | Layer | Description |
 |-------|-------------|
-| **Ingestion** | `backend/ingest.py` — fetches from OpenSky API, stores raw states in SQLite |
+| **Ingestion** | `backend/ingest.py` — fetches from ADSB.lol API, stores raw states in SQLite |
 | **Processing** | `backend/process.py` — filters military aircraft, computes aggregates |
 | **Export** | `backend/export.py` — generates static JSON files for the frontend |
 | **Frontend** | `docs/` — pure HTML/CSS/JS dashboard with Leaflet map and Chart.js |
@@ -36,6 +36,6 @@ python backend/export.py
 
 ## Data sources
 
-All data from [OpenSky Network](https://opensky-network.org) public API (no registration required).
+All data from [ADSB.lol](https://www.adsb.lol) API (free, no auth, ODbL 1.0 licensed).
 # Project-Argus
 Personal intelligence feed.
