@@ -25,20 +25,13 @@ jobs:
       - name: Install dependencies
         run: pip install -r backend/requirements.txt
 
-      - name: Test API connectivity and sample data
+      - name: Test API connectivity
+        continue-on-error: true
         run: |
-          for api in api.airplanes.live api.adsb.one <api.adsb.fi> api.adsb.lol; do
-            echo "--- Testing ${api} ---"
-            resp=$(curl -s -w "\nHTTP_CODE:%{http_code}" "https://${api}/v2/mil" 2>/dev/null || echo "HTTP_CODE:000")
-            code=$(echo "$resp" | grep "HTTP_CODE:" | cut -d: -f2)
-            echo "HTTP status: ${code}"
-            if [ "$code" = "200" ]; then
-              body=$(echo "$resp" | sed '/HTTP_CODE:/d')
-              total=$(echo "$body" | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'Total aircraft: {len(d.get(\"ac\",[]))}')" 2>/dev/null || echo "parse error")
-              echo "$total"
-            fi
-            echo ""
-          done
+          curl -s -o /dev/null -w "airplanes.live: %{http_code}\n" "<https://api.airplanes.live/v2/mil>"
+          curl -s -o /dev/null -w "adsb.one: %{http_code}\n" "<https://api.adsb.one/v2/mil>"
+          curl -s -o /dev/null -w "<adsb.fi>: %{http_code}\n" "<https://api.adsb.fi/v2/mil>"
+          curl -s -o /dev/null -w "adsb.lol: %{http_code}\n" "<https://api.adsb.lol/v2/mil>"
 
       - name: Run ingestion
         continue-on-error: true
