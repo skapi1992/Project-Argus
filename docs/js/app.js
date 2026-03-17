@@ -496,11 +496,13 @@
         // Filter out alerts with no message
         var valid = (alerts || []).filter(function (a) { return a && a.message; });
 
-        // No alerts → hide card, reset header
+        // No alerts → empty the card completely, reset header
         if (!valid.length) {
-            card.classList.remove('visible', 'minimized', 'alert-elevated', 'alert-high', 'alert-critical');
-            card.setAttribute('aria-hidden', 'true');
+            card.hidden = true;
+            card.className = '';
+            card.innerHTML = '';
             alertDismissed = false;
+            alertDetailsExpanded = false;
             if (timelineMode === 'live' && headerStatus) {
                 headerStatus.className = 'header-live';
                 headerStatus.textContent = 'Live';
@@ -521,89 +523,74 @@
             headerStatus.textContent = level;
         }
 
-        // If user dismissed and it's the same alert set, keep minimized
+        // If user dismissed, show minimized bar only
         if (alertDismissed) {
+            card.hidden = false;
             card.className = 'alert-card visible minimized alert-' + level.toLowerCase();
+            card.innerHTML = '';
             return;
         }
 
-        // Show the full alert card
-        card.className = 'alert-card visible alert-' + level.toLowerCase();
-        card.setAttribute('aria-hidden', 'false');
+        // Build card content
+        var html = '<div class="alert-header">' +
+            '<span class="alert-level-badge">' + escapeHtml(level) + '</span>' +
+            '<button class="alert-dismiss" aria-label="Dismiss">&times;</button>' +
+            '</div>' +
+            '<div class="alert-message">' + escapeHtml(top.message) + '</div>';
 
-        // Badge
-        var badge = document.getElementById('alert-level-badge');
-        if (badge) badge.textContent = level;
-
-        // Primary message (top alert)
-        var msg = document.getElementById('alert-message');
-        if (msg) msg.textContent = top.message;
-
-        // Details (all alerts listed)
-        var details = document.getElementById('alert-details');
-        if (details) {
-            details.innerHTML = '';
+        // Details section (only if >1 alert)
+        if (valid.length > 1) {
+            html += '<div class="alert-details' + (alertDetailsExpanded ? ' expanded' : '') + '">';
             valid.forEach(function (a) {
-                var item = document.createElement('div');
-                item.className = 'alert-detail-item';
-                var rule = document.createElement('span');
-                rule.className = 'alert-detail-rule';
-                rule.textContent = a.level;
-                var text = document.createElement('span');
-                text.className = 'alert-detail-msg';
-                text.textContent = a.message;
-                item.appendChild(rule);
-                item.appendChild(text);
-                details.appendChild(item);
+                html += '<div class="alert-detail-item">' +
+                    '<span class="alert-detail-rule">' + escapeHtml(a.level) + '</span>' +
+                    '<span class="alert-detail-msg">' + escapeHtml(a.message) + '</span>' +
+                    '</div>';
             });
-            if (alertDetailsExpanded) {
-                details.classList.add('expanded');
-            } else {
-                details.classList.remove('expanded');
-            }
+            html += '</div>';
+            html += '<button class="alert-toggle-details">' +
+                (alertDetailsExpanded ? 'Hide details' : 'Show details') + '</button>';
         }
 
-        // Toggle button visibility (only show if >1 alert)
-        var toggleBtn = document.getElementById('alert-toggle-details');
+        card.innerHTML = html;
+        card.hidden = false;
+        card.className = 'alert-card visible alert-' + level.toLowerCase();
+
+        // Bind event listeners on freshly created elements
+        var dismissBtn = card.querySelector('.alert-dismiss');
+        if (dismissBtn) {
+            dismissBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                alertDismissed = true;
+                card.className = 'alert-card visible minimized alert-' + level.toLowerCase();
+                card.innerHTML = '';
+            });
+        }
+
+        var toggleBtn = card.querySelector('.alert-toggle-details');
         if (toggleBtn) {
-            toggleBtn.style.display = valid.length > 1 ? '' : 'none';
+            toggleBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                alertDetailsExpanded = !alertDetailsExpanded;
+                var details = card.querySelector('.alert-details');
+                if (details) details.classList.toggle('expanded');
+                toggleBtn.textContent = alertDetailsExpanded ? 'Hide details' : 'Show details';
+            });
         }
     }
 
     function initAlertCard() {
-        var dismissBtn = document.getElementById('alert-dismiss');
-        var toggleBtn = document.getElementById('alert-toggle-details');
         var card = document.getElementById('alert-card');
-
-        if (dismissBtn) {
-            dismissBtn.addEventListener('click', function (e) {
-                e.stopPropagation(); // prevent card click from restoring
-                alertDismissed = true;
-                if (card) card.classList.add('minimized');
-            });
-        }
+        if (!card) return;
 
         // Click minimized bar to restore
-        if (card) {
-            card.addEventListener('click', function () {
-                if (card.classList.contains('minimized')) {
-                    alertDismissed = false;
-                    card.classList.remove('minimized');
-                }
-            });
-        }
-
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', function (e) {
-                e.stopPropagation();
-                var details = document.getElementById('alert-details');
-                if (details) {
-                    alertDetailsExpanded = !alertDetailsExpanded;
-                    details.classList.toggle('expanded');
-                    toggleBtn.textContent = alertDetailsExpanded ? 'Hide details' : 'Show details';
-                }
-            });
-        }
+        card.addEventListener('click', function () {
+            if (card.classList.contains('minimized')) {
+                alertDismissed = false;
+                card.classList.remove('minimized');
+                // Trigger re-render on next refresh cycle
+            }
+        });
     }
 
     function updateLastUpdated(timestamp) {
@@ -786,7 +773,11 @@
 
         // Hide alert card during history playback
         var alertCard = document.getElementById('alert-card');
-        if (alertCard) alertCard.classList.remove('visible', 'minimized');
+        if (alertCard) {
+            alertCard.hidden = true;
+            alertCard.className = '';
+            alertCard.innerHTML = '';
+        }
     }
 
     function enterLiveMode() {

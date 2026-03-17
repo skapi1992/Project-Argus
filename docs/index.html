@@ -69,16 +69,8 @@
         </div>
 
         <aside class="stats-panel">
-            <!-- Alert card (JS controls visibility via .visible class) -->
-            <div class="alert-card" id="alert-card" aria-hidden="true">
-                <div class="alert-header">
-                    <span class="alert-level-badge" id="alert-level-badge"></span>
-                    <button class="alert-dismiss" id="alert-dismiss" aria-label="Dismiss alert" title="Dismiss">&times;</button>
-                </div>
-                <div class="alert-message" id="alert-message"></div>
-                <div class="alert-details" id="alert-details"></div>
-                <button class="alert-toggle-details" id="alert-toggle-details" style="display:none">Show details</button>
-            </div>
+            <!-- Alert card (entirely JS-driven, empty by default) -->
+            <div id="alert-card" hidden></div>
 
             <section class="stat-section summary-line">
                 <span class="summary-item">Active now: <strong id="current-count">—</strong></span>
