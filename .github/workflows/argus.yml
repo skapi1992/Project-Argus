@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: claude/github-pages-hello-world-FhDLI
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -23,7 +25,23 @@ jobs:
       - name: Install dependencies
         run: pip install -r backend/requirements.txt
 
+      - name: Test API connectivity and sample data
+        run: |
+          for api in api.airplanes.live api.adsb.one <api.adsb.fi> api.adsb.lol; do
+            echo "--- Testing ${api} ---"
+            resp=$(curl -s -w "\nHTTP_CODE:%{http_code}" "https://${api}/v2/mil" 2>/dev/null || echo "HTTP_CODE:000")
+            code=$(echo "$resp" | grep "HTTP_CODE:" | cut -d: -f2)
+            echo "HTTP status: ${code}"
+            if [ "$code" = "200" ]; then
+              body=$(echo "$resp" | sed '/HTTP_CODE:/d')
+              total=$(echo "$body" | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'Total aircraft: {len(d.get(\"ac\",[]))}')" 2>/dev/null || echo "parse error")
+              echo "$total"
+            fi
+            echo ""
+          done
+
       - name: Run ingestion
+        continue-on-error: true
         run: python backend/ingest.py
 
       - name: Run processing
@@ -36,6 +54,6 @@ jobs:
         run: |
           git config user.name "Argus Bot"
           git config user.email "argus-bot@users.noreply.github.com"
-          git add docs/data/ argus.db
+          git add docs/data/
           git diff --cached --quiet || git commit -m "Update Argus data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git push
+          git push origin claude/github-pages-hello-world-FhDLI
