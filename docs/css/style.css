@@ -191,11 +191,32 @@ a:hover {
     margin-bottom: 12px;
 }
 
-.stat-value {
-    font-size: 48px;
-    font-weight: 700;
+/* Summary line */
+.summary-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    white-space: nowrap;
+}
+
+.summary-item {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+}
+
+.summary-item strong {
     color: var(--accent-primary);
-    line-height: 1;
+    font-weight: 700;
+}
+
+.summary-sep {
+    color: var(--text-secondary);
+    opacity: 0.4;
+    font-size: 11px;
 }
 
 /* Stats grid */
@@ -232,7 +253,6 @@ a:hover {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 12px;
 }
 
 .tl-btn {

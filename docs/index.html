@@ -69,9 +69,26 @@
         </div>
 
         <aside class="stats-panel">
+            <section class="stat-section summary-line">
+                <span class="summary-item">Active now: <strong id="current-count">—</strong></span>
+                <span class="summary-sep">&middot;</span>
+                <span class="summary-item" id="last-updated-summary">Last update: —</span>
+            </section>
+
             <section class="stat-section">
-                <h2 class="stat-label">Active Now</h2>
-                <div class="stat-value" id="current-count">—</div>
+                <div class="timeline-controls" id="timeline-controls">
+                    <button class="tl-btn" id="tl-play" aria-label="Play" title="Play timeline">&#9654;</button>
+                    <input type="range" class="tl-slider" id="tl-slider" min="0" max="0" value="0">
+                    <button class="tl-btn tl-live-btn active" id="tl-live" title="Return to live">LIVE</button>
+                </div>
+                <div class="tl-timestamp" id="tl-timestamp"></div>
+            </section>
+
+            <section class="stat-section">
+                <h2 class="stat-label">Trend (7 Days)</h2>
+                <div class="chart-container">
+                    <canvas id="trend-chart"></canvas>
+                </div>
             </section>
 
             <section class="stat-section stat-grid">
@@ -94,19 +111,6 @@
             </section>
 
             <section class="stat-section">
-                <h2 class="stat-label">Trend (7 Days)</h2>
-                <div class="chart-container">
-                    <canvas id="trend-chart"></canvas>
-                </div>
-                <div class="timeline-controls" id="timeline-controls">
-                    <button class="tl-btn" id="tl-play" aria-label="Play" title="Play timeline">&#9654;</button>
-                    <input type="range" class="tl-slider" id="tl-slider" min="0" max="0" value="0">
-                    <button class="tl-btn tl-live-btn active" id="tl-live" title="Return to live">LIVE</button>
-                </div>
-                <div class="tl-timestamp" id="tl-timestamp"></div>
-            </section>
-
-            <section class="stat-section">
                 <h2 class="stat-label">By Country</h2>
                 <ul class="country-list" id="country-list">
                     <li class="country-item country-empty">No data yet</li>
@@ -117,8 +121,6 @@
 
     <footer class="footer">
         <span>Data: <a href="https://www.adsb.lol" target="_blank" rel="noopener">ADSB.lol</a> (ODbL)</span>
-        <span class="footer-sep">&middot;</span>
-        <span id="last-updated">Updated: —</span>
         <span class="footer-sep">&middot;</span>
         <span>Argus</span>
     </footer>

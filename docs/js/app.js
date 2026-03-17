@@ -456,7 +456,7 @@
         var headerStatus = document.getElementById('header-status');
 
         if (!timestamp) {
-            setText('last-updated', 'Updated: —');
+            setText('last-updated-summary', 'Last update: —');
             if (banner) banner.classList.remove('visible', 'stale-warning', 'stale-critical');
             return;
         }
@@ -478,7 +478,7 @@
             text = days + 'd ago';
         }
 
-        setText('last-updated', 'Updated: ' + text);
+        setText('last-updated-summary', 'Last update: ' + text);
 
         // Staleness indicator (only in live mode)
         if (timelineMode !== 'live' || !banner) return;
