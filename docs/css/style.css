@@ -298,18 +298,20 @@ a:hover {
     flex: 1;
     -webkit-appearance: none;
     appearance: none;
-    height: 4px;
-    border-radius: 2px;
+    height: 6px;
+    border-radius: 3px;
     background: var(--bg-secondary);
     outline: none;
     cursor: pointer;
+    touch-action: none;
+    padding: 8px 0;
 }
 
 .tl-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 14px;
-    height: 14px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     background: var(--accent-primary);
     border: 2px solid var(--bg-primary);
@@ -317,8 +319,9 @@ a:hover {
     transition: box-shadow 0.15s;
 }
 
-.tl-slider::-webkit-slider-thumb:hover {
-    box-shadow: 0 0 0 4px rgba(212, 168, 83, 0.2);
+.tl-slider::-webkit-slider-thumb:hover,
+.tl-slider::-webkit-slider-thumb:active {
+    box-shadow: 0 0 0 6px rgba(212, 168, 83, 0.25);
 }
 
 .tl-slider::-moz-range-thumb {
@@ -328,6 +331,19 @@ a:hover {
     background: var(--accent-primary);
     border: 2px solid var(--bg-primary);
     cursor: pointer;
+}
+
+.tl-slider:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.tl-slider:disabled::-webkit-slider-thumb {
+    cursor: not-allowed;
+}
+
+.tl-slider:disabled::-moz-range-thumb {
+    cursor: not-allowed;
 }
 
 .tl-timestamp {

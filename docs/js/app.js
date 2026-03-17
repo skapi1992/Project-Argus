@@ -303,6 +303,42 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                onClick: function (event, elements) {
+                    // Click on trend chart to jump timeline to that point
+                    if (!trendChart._trendTimestamps || !trendChart._trendTimestamps.length) return;
+                    var xScale = trendChart.scales.x;
+                    var clickX = event.x;
+                    // Find closest data index to click position
+                    var meta = trendChart.getDatasetMeta(0);
+                    var closestIdx = 0;
+                    var closestDist = Infinity;
+                    for (var i = 0; i < meta.data.length; i++) {
+                        var dist = Math.abs(meta.data[i].x - clickX);
+                        if (dist < closestDist) {
+                            closestDist = dist;
+                            closestIdx = i;
+                        }
+                    }
+                    var clickedTs = trendChart._trendTimestamps[closestIdx];
+                    if (!clickedTs) return;
+
+                    // Find nearest snapshot in timeline
+                    if (!flatSnapshots.length) return;
+                    var nearestSliderIdx = 0;
+                    var nearestDiff = Math.abs(flatSnapshots[0].timestamp - clickedTs);
+                    for (var j = 1; j < flatSnapshots.length; j++) {
+                        var diff = Math.abs(flatSnapshots[j].timestamp - clickedTs);
+                        if (diff < nearestDiff) {
+                            nearestDiff = diff;
+                            nearestSliderIdx = j;
+                        }
+                    }
+
+                    if (timelineMode === 'live') enterHistoryMode();
+                    var slider = document.getElementById('tl-slider');
+                    slider.value = nearestSliderIdx;
+                    showSnapshotAt(nearestSliderIdx);
+                },
                 plugins: {
                     legend: { display: false },
                     timelineCursor: { timestamp: null },
@@ -507,12 +543,20 @@
         var playBtn = document.getElementById('tl-play');
         var liveBtn = document.getElementById('tl-live');
 
-        slider.addEventListener('input', function () {
+        // Support both 'input' (dragging) and 'change' (tap/release) events
+        function onSliderMove() {
             if (timelineMode === 'live') {
                 enterHistoryMode();
             }
             showSnapshotAt(parseInt(slider.value, 10));
-        });
+        }
+        slider.addEventListener('input', onSliderMove);
+        slider.addEventListener('change', onSliderMove);
+
+        // Prevent touch scrolling when interacting with slider
+        slider.addEventListener('touchstart', function (e) {
+            e.stopPropagation();
+        }, { passive: true });
 
         playBtn.addEventListener('click', function () {
             togglePlay();
@@ -524,14 +568,21 @@
 
         // Load history index, then preload all days for the slider
         loadHistoryIndex().then(function () {
-            if (!historyDates.length) return;
+            if (!historyDates.length) {
+                setText('tl-timestamp', 'Waiting for data to accumulate…');
+                return;
+            }
             var promises = historyDates.map(function (d) { return loadHistoryDay(d); });
             return Promise.all(promises);
         }).then(function () {
             buildFlatSnapshots();
-            if (flatSnapshots.length) {
+            if (flatSnapshots.length > 1) {
                 slider.max = flatSnapshots.length - 1;
                 slider.value = slider.max;
+                slider.disabled = false;
+            } else if (flatSnapshots.length <= 1) {
+                slider.disabled = true;
+                setText('tl-timestamp', 'Need more snapshots for replay');
             }
         });
     }
