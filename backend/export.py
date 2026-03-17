@@ -276,7 +276,12 @@ def export_history(conn):
 
     Generates one JSON file per day in docs/data/history/YYYY-MM-DD.json,
     plus an index.json listing available dates.
+
+    Always creates a snapshot for the current timestamp (even with 0 aircraft)
+    so that history accumulates across CI runs.
     """
+    from datetime import datetime, timezone
+
     now = int(time.time())
     cutoff = now - (HISTORY_DAYS * 86400)
 
@@ -291,8 +296,6 @@ def export_history(conn):
     ).fetchall()
 
     # Group rows by day, then by timestamp within each day
-    from datetime import datetime, timezone
-
     days = {}  # date_str -> {timestamp -> [aircraft]}
     for r in rows:
         ts = r[0]
@@ -316,6 +319,38 @@ def export_history(conn):
             "heading": r[8],
             "on_ground": bool(r[9]),
         })
+
+    # Always add a snapshot for "now" so history accumulates even with 0 aircraft
+    now_dt = datetime.fromtimestamp(now, tz=timezone.utc)
+    today_str = now_dt.strftime("%Y-%m-%d")
+    if today_str not in days:
+        days[today_str] = {}
+    if now not in days[today_str]:
+        # Build from live data: use whatever aircraft we have right now
+        live_aircraft = []
+        latest_row = conn.execute(
+            "SELECT MAX(timestamp) FROM military_positions"
+        ).fetchone()
+        if latest_row and latest_row[0]:
+            live_rows = conn.execute(
+                """SELECT icao24, callsign, origin_country, latitude, longitude,
+                          baro_altitude, velocity, true_track, on_ground
+                   FROM military_positions WHERE timestamp = ?""",
+                (latest_row[0],),
+            ).fetchall()
+            for r in live_rows:
+                live_aircraft.append({
+                    "icao24": r[0],
+                    "callsign": r[1].strip() if r[1] else None,
+                    "country": r[2],
+                    "lat": r[3],
+                    "lon": r[4],
+                    "altitude": r[5],
+                    "velocity": r[6],
+                    "heading": r[7],
+                    "on_ground": bool(r[8]),
+                })
+        days[today_str][now] = live_aircraft
 
     # Merge with previously committed data and write daily files
     all_dates = set()
