@@ -13,8 +13,8 @@
     const STATS_URL = `${DATA_BASE}/stats.json`;
 
     const REFRESH_INTERVAL = 60000; // 60 seconds
-    const STALE_WARNING_SECS = 300;   // 5 minutes — amber warning
-    const STALE_CRITICAL_SECS = 600;  // 10 minutes — red critical
+    const STALE_WARNING_SECS = 600;   // 10 minutes — amber warning (2 missed cycles)
+    const STALE_CRITICAL_SECS = 1200; // 20 minutes — red critical (4 missed cycles)
     const MAP_CENTER = [52.0, 19.5];
     const MAP_ZOOM = 6;
 
@@ -850,7 +850,10 @@
     // --- Data fetching ---
 
     function fetchJSON(url) {
-        return fetch(url + '?t=' + Date.now())
+        return fetch(url + '?t=' + Date.now(), {
+                cache: 'no-store',
+                headers: { 'Cache-Control': 'no-cache' },
+            })
             .then(function (resp) {
                 if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 return resp.json();
@@ -883,6 +886,57 @@
             })
             .catch(function (err) {
                 console.warn('Failed to fetch trend data:', err);
+            });
+
+        // Refresh history data so timeline stays current
+        refreshHistory();
+    }
+
+    function refreshHistory() {
+        fetchJSON(HISTORY_INDEX_URL)
+            .then(function (data) {
+                var newDates = (data.dates || []).sort();
+                // Check if we have new dates
+                var changed = newDates.length !== historyDates.length ||
+                    newDates.some(function (d, i) { return d !== historyDates[i]; });
+                historyDates = newDates;
+
+                if (!historyDates.length) return Promise.resolve();
+
+                // Always reload today's file (it gets new snapshots each cycle)
+                var today = historyDates[historyDates.length - 1];
+                var promises = [];
+
+                // Load any new dates we haven't cached
+                historyDates.forEach(function (d) {
+                    if (!historyCache[d] || d === today) {
+                        promises.push(
+                            fetchJSON(DATA_BASE + '/history/' + d + '.json')
+                                .then(function (dayData) {
+                                    historyCache[d] = dayData;
+                                })
+                                .catch(function () { /* ignore */ })
+                        );
+                    }
+                });
+
+                return Promise.all(promises);
+            })
+            .then(function () {
+                buildFlatSnapshots();
+                var slider = document.getElementById('tl-slider');
+                if (flatSnapshots.length > 1) {
+                    var wasAtEnd = parseInt(slider.value, 10) >= parseInt(slider.max, 10);
+                    slider.max = flatSnapshots.length - 1;
+                    // If user was at the latest position, keep them there
+                    if (wasAtEnd || timelineMode === 'live') {
+                        slider.value = slider.max;
+                    }
+                    slider.disabled = false;
+                }
+            })
+            .catch(function (err) {
+                console.warn('Failed to refresh history:', err);
             });
     }
 
