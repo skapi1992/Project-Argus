@@ -20,4 +20,4 @@ id = "YOUR_KV_NAMESPACE_ID"
 # [vars]
 # GITHUB_OWNER = "skapi1992"
 # GITHUB_REPO = "Project-Argus"
-# GITHUB_BRANCH = "main"
+# GITHUB_BRANCH = "claude/github-pages-hello-world-FhDLI"

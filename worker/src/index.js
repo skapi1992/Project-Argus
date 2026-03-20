@@ -16,7 +16,7 @@
  * Environment variables:
  *   - GITHUB_OWNER (default: "skapi1992")
  *   - GITHUB_REPO  (default: "Project-Argus")
- *   - GITHUB_BRANCH (default: "main")
+ *   - GITHUB_BRANCH (default: "claude/github-pages-hello-world-FhDLI")
  */
 
 // ─── Configuration ──────────────────────────────────────────────────────────
@@ -568,7 +568,7 @@ async function generateHistory(kv, snapshot) {
 async function commitToGitHub(env, files) {
   const owner = env.GITHUB_OWNER || "skapi1992";
   const repo = env.GITHUB_REPO || "Project-Argus";
-  const branch = env.GITHUB_BRANCH || "main";
+  const branch = env.GITHUB_BRANCH || "claude/github-pages-hello-world-FhDLI";
   const token = env.GITHUB_PAT;
 
   if (!token) {

@@ -6,9 +6,8 @@
 (function () {
     'use strict';
 
-    // Data paths — fetch from main branch to ensure we always get the latest
-    // worker-committed data regardless of which branch GitHub Pages deploys from.
-    const DATA_BASE = 'https://raw.githubusercontent.com/skapi1992/Project-Argus/main/docs/data';
+    // Data paths (relative to docs/ root served by GitHub Pages)
+    const DATA_BASE = 'data';
     const LIVE_URL = `${DATA_BASE}/live.json`;
     const TREND_URL = `${DATA_BASE}/trend.json`;
     const STATS_URL = `${DATA_BASE}/stats.json`;
