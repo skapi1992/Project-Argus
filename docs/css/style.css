@@ -803,17 +803,38 @@ a:hover {
     100% { box-shadow: 0 0 0 0 rgba(212, 168, 83, 0); }
 }
 
-.aircraft-marker {
-    width: 12px;
-    height: 12px;
+.aircraft-marker-wrap {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.aircraft-marker-wrap svg {
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+}
+
+.aircraft-marker-wrap.new svg {
+    animation: arrow-pulse 2s ease-in-out infinite;
+}
+
+/* Fallback dot when no heading is available */
+.aircraft-marker-dot {
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     background: var(--accent-primary);
     border: 1.5px solid rgba(212, 168, 83, 0.8);
-    cursor: pointer;
 }
 
-.aircraft-marker.new {
+.aircraft-marker-wrap.new .aircraft-marker-dot {
     animation: marker-pulse 2s ease-in-out infinite;
+}
+
+@keyframes arrow-pulse {
+    0% { filter: drop-shadow(0 0 0 rgba(212, 168, 83, 0.5)); }
+    70% { filter: drop-shadow(0 0 6px rgba(212, 168, 83, 0.8)); }
+    100% { filter: drop-shadow(0 0 0 rgba(212, 168, 83, 0.5)); }
 }
 
 /* Mobile responsive */

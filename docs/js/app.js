@@ -53,12 +53,19 @@
         markersLayer = L.layerGroup().addTo(map);
     }
 
-    function createMarkerIcon(isNew) {
+    function createMarkerIcon(isNew, heading) {
+        const rotation = heading != null ? Math.round(heading) : 0;
+        const hasHeading = heading != null;
+        const svg = hasHeading
+            ? `<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" style="transform:rotate(${rotation}deg)">` +
+              `<path d="M8 1 L13 13 L8 10 L3 13 Z" fill="var(--accent-primary)" stroke="rgba(212,168,83,0.8)" stroke-width="1" stroke-linejoin="round"/>` +
+              `</svg>`
+            : `<div class="aircraft-marker-dot"></div>`;
         return L.divIcon({
-            className: '',
-            html: `<div class="aircraft-marker${isNew ? ' new' : ''}"></div>`,
-            iconSize: [12, 12],
-            iconAnchor: [6, 6],
+            className: `aircraft-marker-wrap${isNew ? ' new' : ''}`,
+            html: svg,
+            iconSize: [16, 16],
+            iconAnchor: [8, 8],
         });
     }
 
@@ -244,7 +251,7 @@
             if (ac.lat == null || ac.lon == null) return;
 
             const marker = L.marker([ac.lat, ac.lon], {
-                icon: createMarkerIcon(true),
+                icon: createMarkerIcon(true, ac.heading),
             });
 
             marker.bindTooltip(buildTooltip(ac), {
