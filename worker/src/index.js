@@ -497,7 +497,33 @@ function generateStats(state, snapshot) {
   };
 }
 
-async function generateHistory(kv, snapshot) {
+/**
+ * Fetch a history JSON file from the GitHub repo (for migrating old data into KV).
+ */
+async function fetchHistoryFromGit(env, dateStr) {
+  const owner = env.GITHUB_OWNER || "skapi1992";
+  const repo = env.GITHUB_REPO || "Project-Argus";
+  const branch = env.GITHUB_BRANCH || "claude/github-pages-hello-world-FhDLI";
+  const token = env.GITHUB_PAT;
+  if (!token) return null;
+
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/docs/data/history/${dateStr}.json?ref=${branch}`;
+  try {
+    const resp = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github.raw+json",
+        "User-Agent": "Project-Argus-Worker/1.0",
+      },
+    });
+    if (!resp.ok) return null;
+    return await resp.json();
+  } catch {
+    return null;
+  }
+}
+
+async function generateHistory(kv, env, snapshot, state) {
   const now = Math.floor(Date.now() / 1000);
   const todayStr = utcDateStr(now);
   const cutoffDate = now - HISTORY_DAYS * 86400;
@@ -530,6 +556,52 @@ async function generateHistory(kv, snapshot) {
   const indexRaw = await kv.get("history_index", "json");
   const existingDates = new Set((indexRaw && indexRaw.dates) || []);
   existingDates.add(todayStr);
+
+  // Generate all dates in the 7-day window to check for old git data
+  const allPossibleDates = [];
+  for (let i = 0; i < HISTORY_DAYS; i++) {
+    allPossibleDates.push(utcDateStr(now - i * 86400));
+  }
+
+  // For any date in the window not already in KV, try to import from git
+  const migrationPromises = [];
+  for (const d of allPossibleDates) {
+    if (!existingDates.has(d) && d !== todayStr) {
+      migrationPromises.push(
+        (async () => {
+          // Check KV first
+          const kvData = await kv.get(`history_${d}`, "json");
+          if (kvData) {
+            existingDates.add(d);
+            return;
+          }
+          // Not in KV — try fetching from git
+          const gitData = await fetchHistoryFromGit(env, d);
+          if (gitData && gitData.snapshots && gitData.snapshots.length > 0) {
+            await kv.put(`history_${d}`, JSON.stringify(gitData));
+            existingDates.add(d);
+            console.log(`Migrated history/${d}.json from git to KV (${gitData.snapshots.length} snapshots)`);
+
+            // Backfill trend from these historical snapshots
+            for (const s of gitData.snapshots) {
+              const bucket = Math.floor(s.timestamp / TREND_INTERVAL_SECONDS) * TREND_INTERVAL_SECONDS;
+              const count = (s.aircraft || []).length;
+              // Only backfill if we don't already have data for this bucket
+              const hasBucket = state.trend.some(p => p.timestamp === bucket);
+              if (!hasBucket && count > 0) {
+                state.trend.push({ timestamp: bucket, count });
+              }
+            }
+          }
+        })()
+      );
+    }
+  }
+  if (migrationPromises.length > 0) {
+    await Promise.all(migrationPromises);
+    // Re-sort trend after backfill
+    state.trend.sort((a, b) => a.timestamp - b.timestamp);
+  }
 
   // Prune old dates
   const validDates = [];
@@ -689,9 +761,10 @@ async function runPipeline(env) {
 
   // 4. Generate all export data
   const liveData = generateLive(snapshot);
+  // Run history first — it may backfill trend data from old git history files
+  const historyFiles = await generateHistory(env.ARGUS_KV, env, snapshot, state);
   const trendData = updateTrend(state, snapshot);
   const statsData = generateStats(state, snapshot);
-  const historyFiles = await generateHistory(env.ARGUS_KV, snapshot);
 
   // 5. Build file map for GitHub commit
   const files = {
