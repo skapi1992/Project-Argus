@@ -1,1 +1,1 @@
-{"current_count":3,"avg_24h":3.6,"avg_7d":3.6,"avg_30d":3.6,"peak":9,"low":1,"last_updated":1774032336,"countries":[{"name":"USA","count":2},{"name":"Romania","count":1}],"alerts":[{"level":"ELEVATED","rule":"new_country_detected","message":"New origin country: Romania","triggered_at":1774032340}]}
+{"current_count":3,"avg_24h":3.6,"avg_7d":3.6,"avg_30d":3.6,"peak":9,"low":1,"last_updated":1774032636,"countries":[{"name":"USA","count":2},{"name":"Romania","count":1}],"alerts":[]}
