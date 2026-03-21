@@ -1,1 +1,1 @@
-{"current_count":2,"avg_24h":2.4,"avg_7d":2.4,"avg_30d":2.4,"peak":9,"low":1,"last_updated":1774071035,"countries":[{"name":"USA","count":2}],"alerts":[{"level":"CRITICAL","rule":"count_surge","message":"Surge detected: 2 aircraft (was 1 within 30 min)","triggered_at":1774071035}]}
+{"current_count":3,"avg_24h":2.4,"avg_7d":2.4,"avg_30d":2.4,"peak":9,"low":1,"last_updated":1774071335,"countries":[{"name":"USA","count":3}],"alerts":[{"level":"CRITICAL","rule":"count_surge","message":"Surge detected: 3 aircraft (was 1 within 30 min)","triggered_at":1774071335}]}
