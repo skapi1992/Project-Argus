@@ -1,1 +1,1 @@
-{"current_count":2,"avg_24h":2.2,"avg_7d":2.2,"avg_30d":2.2,"peak":9,"low":1,"last_updated":1774083035,"countries":[{"name":"France","count":1},{"name":"USA","count":1}],"alerts":[{"level":"ELEVATED","rule":"new_country_detected","message":"New origin country: France","triggered_at":1774083035}]}
+{"current_count":2,"avg_24h":2.5,"avg_7d":3.4,"avg_30d":2.0,"peak":9,"low":1,"last_updated":1774083123,"countries":[{"name":"France","count":1},{"name":"USA","count":1}],"alerts":[]}
