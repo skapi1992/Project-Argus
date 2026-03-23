@@ -1,1 +1,1 @@
-{"current_count":4,"avg_24h":4.4,"avg_7d":2.6,"avg_30d":2.6,"peak":15,"low":1,"last_updated":1774278021,"countries":[{"name":"USA","count":2},{"name":"Germany","count":1},{"name":"Poland","count":1}],"alerts":[]}
+{"current_count":6,"avg_24h":4.4,"avg_7d":2.6,"avg_30d":2.6,"peak":15,"low":1,"last_updated":1774278619,"countries":[{"name":"USA","count":3},{"name":"Poland","count":2},{"name":"Germany","count":1}],"alerts":[{"level":"CRITICAL","rule":"count_surge","message":"Surge detected: 6 aircraft (was 3 within 30 min)","triggered_at":1774278622}]}
