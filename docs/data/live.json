@@ -1,1 +1,1 @@
-{"timestamp":1774333212,"count":2,"aircraft":[{"icao24":"ae145c","callsign":"RCH207","country":"USA","lat":49.836524,"lon":12.292444,"altitude":8839.2,"velocity":225.840916,"heading":105,"on_ground":false},{"icao24":"48d855","callsign":"PLF032","country":"Poland","lat":50.475376,"lon":19.176971,"altitude":556.26,"velocity":72.02216,"heading":270.53,"on_ground":false}]}
+{"timestamp":1774333512,"count":1,"aircraft":[{"icao24":"ae145c","callsign":"RCH207","country":"USA","lat":49.656826,"lon":13.222536,"altitude":8839.2,"velocity":227.898692,"heading":107,"on_ground":false}]}
