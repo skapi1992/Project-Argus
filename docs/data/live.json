@@ -1,1 +1,1 @@
-{"timestamp":1774468858,"count":1,"aircraft":[{"icao24":"ae6cb2","callsign":"HUNT23","country":"USA","lat":52.50087,"lon":17.787807,"altitude":396.24,"velocity":46.814404,"heading":333,"on_ground":false}]}
+{"timestamp":1774469148,"count":2,"aircraft":[{"icao24":"3fb284","callsign":"GAF954","country":"Germany","lat":52.54178,"lon":12.88288,"altitude":541.02,"velocity":null,"heading":null,"on_ground":false},{"icao24":"ae6cb2","callsign":"HUNT23","country":"USA","lat":52.481369,"lon":17.793579,"altitude":396.24,"velocity":46.814404,"heading":52.8,"on_ground":false}]}
