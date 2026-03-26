@@ -1,1 +1,1 @@
-{"timestamp":1774524325,"count":2,"aircraft":[{"icao24":"ae0847","callsign":null,"country":"USA","lat":49.661318,"lon":14.919497,"altitude":10370.82,"velocity":241.78868,"heading":291.97,"on_ground":false},{"icao24":"ae0193","callsign":"E10E3","country":"USA","lat":52.422707,"lon":16.817753,"altitude":125.8824,"velocity":15.43332,"heading":287.2,"on_ground":false}]}
+{"timestamp":1774524625,"count":1,"aircraft":[{"icao24":"ae0847","callsign":null,"country":"USA","lat":49.954127,"lon":14.028976,"altitude":10370.82,"velocity":239.730904,"heading":300.41,"on_ground":false}]}
