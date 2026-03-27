@@ -1,1 +1,1 @@
-{"timestamp":1774620929,"count":1,"aircraft":[{"icao24":"adfeba","callsign":"SAM633","country":"USA","lat":50.067399,"lon":13.995388,"altitude":2537.46,"velocity":null,"heading":null,"on_ground":false}]}
+{"timestamp":1774621230,"count":2,"aircraft":[{"icao24":"480c1b","callsign":"NAF13","country":"Netherlands","lat":51.516266,"lon":12.300011,"altitude":13716,"velocity":258.0451104,"heading":92.74,"on_ground":false},{"icao24":"adfeba","callsign":"SAM633","country":"USA","lat":50.176898,"lon":13.227407,"altitude":6355.08,"velocity":207.835376,"heading":282,"on_ground":false}]}
