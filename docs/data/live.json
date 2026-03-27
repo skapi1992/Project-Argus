@@ -1,1 +1,1 @@
-{"timestamp":1774630829,"count":2,"aircraft":[{"icao24":"ae152f","callsign":"HKY705","country":"USA","lat":49.52694,"lon":14.912109,"altitude":8534.4,"velocity":159.992084,"heading":295,"on_ground":false},{"icao24":"3ea556","callsign":"GAF117","country":"Germany","lat":54.643762,"lon":25.287365,"altitude":null,"velocity":0,"heading":241.88,"on_ground":true}]}
+{"timestamp":1774631125,"count":1,"aircraft":[{"icao24":"ae152f","callsign":"HKY705","country":"USA","lat":49.69865,"lon":14.275106,"altitude":8534.4,"velocity":174.396516,"heading":294,"on_ground":false}]}
