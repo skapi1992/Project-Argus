@@ -1,1 +1,1 @@
-{"timestamp":1775224245,"count":0,"aircraft":[]}
+{"timestamp":1775224545,"count":1,"aircraft":[{"icao24":"48d82f","callsign":"PLF112","country":"Poland","lat":50.523925,"lon":20.515757,"altitude":3352.8,"velocity":78.195488,"heading":223.77,"on_ground":false}]}
