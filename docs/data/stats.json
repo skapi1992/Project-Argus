@@ -1,1 +1,1 @@
-{"current_count":3,"avg_24h":1.4,"avg_7d":2.5,"avg_30d":3.0,"peak":15,"low":1,"last_updated":1775386991,"countries":[{"name":"USA","count":3}],"alerts":[{"level":"ELEVATED","rule":"count_above_average","message":"3 aircraft \u2014 2.1x above 24h avg (1.4)","triggered_at":1775386992}]}
+{"current_count":3,"avg_24h":1.4,"avg_7d":2.5,"avg_30d":3.0,"peak":15,"low":1,"last_updated":1775389187,"countries":[{"name":"USA","count":3}],"alerts":[{"level":"ELEVATED","rule":"count_above_average","message":"3 aircraft \u2014 2.1x above 24h avg (1.4)","triggered_at":1775389188}]}
