@@ -1,1 +1,1 @@
-{"timestamp":1775352016,"count":0,"aircraft":[]}
+{"timestamp":1775352316,"count":2,"aircraft":[{"icao24":"ae1471","callsign":"RCH160","country":"USA","lat":49.798518,"lon":12.00717,"altitude":8229.6,"velocity":245.904232,"heading":87.19,"on_ground":false},{"icao24":"ae144f","callsign":"RCH1858","country":"USA","lat":48.004699,"lon":19.501718,"altitude":10972.800000000001,"velocity":221.725364,"heading":314,"on_ground":false}]}
