@@ -1,1 +1,1 @@
-{"timestamp":1775684136,"count":2,"aircraft":[{"icao24":"ae10b5","callsign":"MOOSE33","country":"USA","lat":50.101695,"lon":12.755717,"altitude":10363.2,"velocity":192.9165,"heading":289,"on_ground":false},{"icao24":"adfeb8","callsign":"SAM335","country":"USA","lat":49.282891,"lon":13.835618,"altitude":10363.2,"velocity":218.6387,"heading":273,"on_ground":false}]}
+{"timestamp":1775684438,"count":1,"aircraft":[{"icao24":"adfeb8","callsign":"SAM335","country":"USA","lat":49.018618,"lon":13.01607,"altitude":10363.2,"velocity":261.337552,"heading":258,"on_ground":false}]}
