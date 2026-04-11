@@ -1,1 +1,1 @@
-{"current_count":2,"avg_24h":1.9,"avg_7d":2.7,"avg_30d":2.7,"peak":17,"low":1,"last_updated":1775915723,"countries":[{"name":"USA","count":1},{"name":"Italy","count":1}],"alerts":[]}
+{"current_count":3,"avg_24h":1.9,"avg_7d":2.7,"avg_30d":2.7,"peak":17,"low":1,"last_updated":1775916023,"countries":[{"name":"USA","count":2},{"name":"Italy","count":1}],"alerts":[{"level":"ELEVATED","rule":"count_above_average","message":"3 aircraft — 1.6x above 24h avg (1.9)","triggered_at":1775916026}]}
