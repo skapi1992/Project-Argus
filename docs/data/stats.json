@@ -1,1 +1,1 @@
-{"current_count":2,"avg_24h":1.7,"avg_7d":3.1,"avg_30d":3.1,"peak":17,"low":1,"last_updated":1776549029,"countries":[{"name":"USA","count":2}],"alerts":[{"level":"CRITICAL","rule":"count_surge","message":"Surge detected: 2 aircraft (was 1 within 30 min)","triggered_at":1776549030}]}
+{"current_count":2,"avg_24h":1.5,"avg_7d":3.0,"avg_30d":2.0,"peak":17,"low":1,"last_updated":1776549234,"countries":[{"name":"USA","count":2}],"alerts":[]}
