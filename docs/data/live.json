@@ -1,1 +1,1 @@
-{"timestamp":1776666334,"count":1,"aircraft":[{"icao24":"48d961","callsign":"PLF106","country":"Poland","lat":50.101776,"lon":19.959123,"altitude":891.5400000000001,"velocity":73.2568256,"heading":257.43,"on_ground":false}]}
+{"timestamp":1776666634,"count":1,"aircraft":[{"icao24":"48d961","callsign":"PLF106","country":"Poland","lat":50.073414,"lon":19.772087,"altitude":null,"velocity":9.517214000000001,"heading":165.9,"on_ground":true}]}
