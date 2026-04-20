@@ -1,1 +1,1 @@
-{"current_count":6,"avg_24h":3.7,"avg_7d":3.2,"avg_30d":3.3,"peak":17,"low":1,"last_updated":1776700535,"countries":[{"name":"Germany","count":3},{"name":"Poland","count":3}],"alerts":[{"level":"ELEVATED","rule":"count_above_average","message":"6 aircraft — 1.6x above 24h avg (3.7)","triggered_at":1776700537}]}
+{"current_count":5,"avg_24h":3.7,"avg_7d":3.3,"avg_30d":3.3,"peak":17,"low":1,"last_updated":1776700835,"countries":[{"name":"Poland","count":3},{"name":"Germany","count":2}],"alerts":[]}
