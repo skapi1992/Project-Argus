@@ -1,1 +1,1 @@
-{"timestamp":1776921019,"count":0,"aircraft":[]}
+{"timestamp":1776921322,"count":2,"aircraft":[{"icao24":"4984b5","callsign":"CEF05C","country":"Czech Republic","lat":50.088547,"lon":14.549296,"altitude":815.34,"velocity":85.60348160000001,"heading":75.38,"on_ground":false},{"icao24":"48d820","callsign":"PLF243","country":"Poland","lat":52.356503,"lon":17.912641,"altitude":2682.2400000000002,"velocity":null,"heading":null,"on_ground":false}]}
