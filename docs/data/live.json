@@ -1,1 +1,1 @@
-{"timestamp":1777127133,"count":1,"aircraft":[{"icao24":"3f4e27","callsign":"GAF602","country":"Germany","lat":52.385978,"lon":13.562151,"altitude":213.36,"velocity":56.6402844,"heading":249.26,"on_ground":false}]}
+{"timestamp":1777127439,"count":1,"aircraft":[{"icao24":"3f4e27","callsign":"GAF602","country":"Germany","lat":52.380466,"lon":13.511391,"altitude":null,"velocity":2.4693312,"heading":null,"on_ground":true}]}
