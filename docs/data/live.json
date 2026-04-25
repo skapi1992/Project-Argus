@@ -1,1 +1,1 @@
-{"timestamp":1777075536,"count":1,"aircraft":[{"icao24":"480c40","callsign":"MMF19","country":"France","lat":51.572198,"lon":16.645126,"altitude":10668,"velocity":267.768102,"heading":110.35,"on_ground":false}]}
+{"timestamp":1777075836,"count":2,"aircraft":[{"icao24":"480c40","callsign":"MMF19","country":"France","lat":51.315628,"lon":17.725253,"altitude":10668,"velocity":268.282546,"heading":111.25,"on_ground":false},{"icao24":"ae1242","callsign":"RCH592","country":"USA","lat":48.207512,"lon":18.911159,"altitude":9753.6,"velocity":205.7776,"heading":311,"on_ground":false}]}
