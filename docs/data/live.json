@@ -1,1 +1,1 @@
-{"timestamp":1777637141,"count":2,"aircraft":[{"icao24":"ae07a1","callsign":null,"country":"USA","lat":50.186307,"lon":12.353979,"altitude":9144,"velocity":235.615352,"heading":278.79,"on_ground":false},{"icao24":"ae6cbd","callsign":"HUNT49","country":"USA","lat":52.405792,"lon":17.830658,"altitude":null,"velocity":62.247724,"heading":84.9,"on_ground":true}]}
+{"timestamp":1777637441,"count":0,"aircraft":[]}
