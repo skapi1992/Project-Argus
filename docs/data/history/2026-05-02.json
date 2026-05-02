@@ -1,1 +1,1 @@
-{"date":"2026-05-02","snapshots":[{"timestamp":1777680026,"aircraft":[]},{"timestamp":1777680326,"aircraft":[]}]}
+{"date":"2026-05-02","snapshots":[{"timestamp":1777680026,"aircraft":[]},{"timestamp":1777680326,"aircraft":[]},{"timestamp":1777680626,"aircraft":[{"icao24":"ae20c3","callsign":"MOOSE47","country":"USA","lat":49.40432,"lon":12.045646,"altitude":8839.2,"velocity":224.812028,"heading":98,"on_ground":false}]}]}
