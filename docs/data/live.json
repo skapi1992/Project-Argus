@@ -1,1 +1,1 @@
-{"timestamp":1778002857,"count":0,"aircraft":[]}
+{"timestamp":1778003155,"count":2,"aircraft":[{"icao24":"ae2208","callsign":"HERKY40","country":"USA","lat":48.906572,"lon":12.169087,"altitude":1897.38,"velocity":102.374356,"heading":316,"on_ground":false},{"icao24":"477ff4","callsign":"HUF198","country":"Hungary","lat":48.126022,"lon":19.620827,"altitude":8831.58,"velocity":236.129796,"heading":356.25,"on_ground":false}]}
