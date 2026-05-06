@@ -1,1 +1,1 @@
-{"timestamp":1778082637,"count":2,"aircraft":[{"icao24":"ae10b8","callsign":"RCH363","country":"USA","lat":48.363585,"lon":18.046056,"altitude":8229.6,"velocity":232.9916876,"heading":141.81,"on_ground":false},{"icao24":"ae220a","callsign":null,"country":"USA","lat":48.006935,"lon":19.497684,"altitude":7924.8,"velocity":172.33874,"heading":313,"on_ground":false}]}
+{"timestamp":1778082937,"count":1,"aircraft":[{"icao24":"ae220a","callsign":null,"country":"USA","lat":48.277472,"lon":18.976238,"altitude":7924.8,"velocity":159.992084,"heading":308,"on_ground":false}]}
