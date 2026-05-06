@@ -1,1 +1,1 @@
-{"timestamp":1778108737,"count":0,"aircraft":[]}
+{"timestamp":1778109038,"count":2,"aircraft":[{"icao24":"ae11db","callsign":"SHUCK81","country":"USA","lat":48.319069,"lon":18.136717,"altitude":10972.800000000001,"velocity":201.662048,"heading":319,"on_ground":false},{"icao24":"ae3408","callsign":"COVET01","country":"USA","lat":53.753448,"lon":21.871974,"altitude":274.32,"velocity":45.836960399999995,"heading":1.93,"on_ground":false}]}
