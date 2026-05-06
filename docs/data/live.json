@@ -1,1 +1,1 @@
-{"timestamp":1778089237,"count":0,"aircraft":[]}
+{"timestamp":1778089537,"count":2,"aircraft":[{"icao24":"ae2208","callsign":"HERKY40","country":"USA","lat":49.043592,"lon":12.377379,"altitude":1066.8,"velocity":112.663236,"heading":256,"on_ground":false},{"icao24":"48d961","callsign":"PLF101","country":"Poland","lat":52.120605,"lon":20.610123,"altitude":3649.98,"velocity":154.64186640000003,"heading":205.63,"on_ground":false}]}
